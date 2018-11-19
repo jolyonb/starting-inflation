@@ -17,7 +17,7 @@ phi0 = 25.0
 phi0dot = 0.001
 #define a couple parameters in terms of H_{0} (which we approximate by its background value here -- Hback0 -- the true H_{0} will have a small correction from this due to the inclusion of \delta \rho2)
 Hback0 = np.sqrt((1.0/3.0)*(0.5*phi0dot*phi0dot + (1.0/4.0)*lamda*phi0**(4.0)))
-print("H0 (for R and \kappa): {0}".format(Hback0))
+print("H0: {0}".format(Hback0))
 Rmax = 2.0/Hback0
 k_modes = 40
 kappa = 20.0*Hback0
