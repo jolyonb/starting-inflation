@@ -251,17 +251,7 @@ def make_initial_data(phi0, phi0dot, Rmax, k_modes, hartree, lamda, kappa,
         
         poscoeffs[1] = [np.ones_like(params.k_grids[1])] * 3
         velcoeffs[1] = [1j*np.ones_like(params.k_grids[1])] * 3
-        
-        #defined only to construct H0 (in Bunch-Davies)
-        #vel10 = np.array([-1j*(np.sqrt(params.k_grids[0][i]/2.0)) for i in range(len(params.k_grids[0]))])
-        #vel20 = np.array([(-1.0/params.k_grids[0][i])*np.sqrt(params.k_grids[0][i]/2.0) for i in range(len(params.k_grids[0]))])
-        
-        #denominator = 0.5*hartree_kinetic(vel20, params)
-        
-        #H0BD = np.sqrt( numerator/3.0/(1.0 - denominator/3.0) )
-
-
-
+       
     # Attach these to params
     params.poscoeffs = poscoeffs
     params.velcoeffs = velcoeffs
