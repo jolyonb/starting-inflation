@@ -11,7 +11,7 @@ from scipy.special import spherical_jn
 from besselroots import get_jn_roots
 from integrator import AbstractModel, AbstractParameters
 from eoms import (eoms, compute_hubble, compute_initial_psi, compute_hartree,
-                  compute_hubbledot, compute_phi0ddot, compute_rho, compute_deltarho2,
+                  compute_hubbledot, compute_phi0ddot, compute_rho, compute_deltarho2, hartree_kinetic, hartree_gradient, hartree_potential,
                   compute_hubble_constraint_viol, potential, dpotential, ddpotential,
                   dddpotential, ddddpotential, compute_phi0ddot)
 
@@ -141,6 +141,7 @@ class Model(AbstractModel):
         rho = compute_rho(phi0, phi0dot, self.parameters)
         deltarho2 = compute_deltarho2(a, phi0, hkinetic0, hgradient0, hpotential0, self.parameters)
 
+
         hubble_violation = compute_hubble_constraint_viol(a, adot, phi0, phi0dot,
                                                           hpotential, hkinetic, hgradient,
                                                           self.parameters)
@@ -233,18 +234,33 @@ def make_initial_data(phi0, phi0dot, Rmax, k_modes, hartree, lamda, kappa,
             return Aarray + 1j*Barray, Carray + 1j*Darray
 
         poscoeffs[0], velcoeffs[0] = random_arrays(params.k_modes)
-        poscoeffs[1] = [None] * 3
+        poscoeff1s[1] = [None] * 3
         velcoeffs[1] = [None] * 3
         for i in range(3):
             P, V = random_arrays(params.k_modes - 1)
             poscoeffs[1][i] = P
             velcoeffs[1][i] = V
     else:
-        # Use unit coefficients initially
-        poscoeffs[0] = np.ones_like(params.k_grids[0])
-        velcoeffs[0] = 1j*np.ones_like(params.k_grids[0])
+        
+        #Bunch-Davies initial conditions
+        
+        H0back = np.sqrt((1.0/3.0)*compute_rho(phi0, phi0dot, params))
+        
+        poscoeffs[0] = np.array([1/np.sqrt(2*params.k_grids[0][i]) for i in range(len(params.k_grids[0]))])
+        velcoeffs[0] = np.array([(np.sqrt(params.k_grids[0][i])/2.0)*(-1j-H0back/params.k_grids[0][i]) for i in range(len(params.k_grids[0]))])
+        
         poscoeffs[1] = [np.ones_like(params.k_grids[1])] * 3
         velcoeffs[1] = [1j*np.ones_like(params.k_grids[1])] * 3
+        
+        #defined only to construct H0 (in Bunch-Davies)
+        #vel10 = np.array([-1j*(np.sqrt(params.k_grids[0][i]/2.0)) for i in range(len(params.k_grids[0]))])
+        #vel20 = np.array([(-1.0/params.k_grids[0][i])*np.sqrt(params.k_grids[0][i]/2.0) for i in range(len(params.k_grids[0]))])
+        
+        #denominator = 0.5*hartree_kinetic(vel20, params)
+        
+        #H0BD = np.sqrt( numerator/3.0/(1.0 - denominator/3.0) )
+
+
 
     # Attach these to params
     params.poscoeffs = poscoeffs
@@ -265,47 +281,6 @@ def make_initial_data(phi0, phi0dot, Rmax, k_modes, hartree, lamda, kappa,
         hpotential, hgradient, hkinetic = compute_hartree(phiA, phidotA, phiB, phidotB, params)
     else:
         hpotential, hgradient, hkinetic = (0, 0, 0)
-
-    # Figure out what coefficients we need to multiply by to get perturbed_ratio
-    if params.hartree:
-        A = hkinetic
-        B = hgradient + hpotential * ddpotential(phi0, params)
-        C = compute_rho(phi0, phi0dot, params)
-        print("Kinetic:", A)
-        print("Potential:", B)
-        print("Background:", C)
-        print("Ratio:", perturbed_ratio)
-        # Want to solve
-        # A/x^2 + B*x^2 = perturbed_ratio * C
-        # for x
-        # We then multiply all poscoeffs by x and all velcoeffs by 1/x
-        discriminant = perturbed_ratio**2 * C**2 - 4*A*B
-        if discriminant < 0:
-            raise ValueError("Unable to solve quadratic equation for initial energy")
-        elif discriminant == 0:
-            x2 = perturbed_ratio*C/2/A
-        else:
-            # Choose the root
-            if solution == 0:
-                solution = random.randrange(1, 3)
-                params.solution = solution
-            # Solve the quadratic carefully
-            q = 0.5*(perturbed_ratio*C + sqrt(discriminant))
-            if solution == 1:
-                x2 = q / B
-            else:
-                x2 = A / q
-        x = sqrt(x2)
-        poscoeffs[0] *= x
-        velcoeffs[0] /= x
-        for i in range(3):
-            poscoeffs[1][i] *= x
-            velcoeffs[1][i] /= x
-
-        # Cross check
-        hpotential, hgradient, hkinetic = compute_hartree(phiA, phidotA, phiB, phidotB, params)
-        deltarho2 = compute_deltarho2(a, phi0, hkinetic, hgradient, hpotential, params)
-        assert abs(deltarho2 / C - perturbed_ratio) < 1e-12
 
     # We compute its time derivative by using the Friedmann equation + corrections
     adot = compute_hubble(a, phi0, phi0dot, hpotential, hkinetic, hgradient, params) * a
@@ -355,6 +330,8 @@ def unpack(data, total_wavenumbers):
     adot = data[1]
     phi0 = data[2]
     phi0dot = data[3]
+
+    # print (adot/a)
 
     # How many fields do we have here?
     numfields = total_wavenumbers

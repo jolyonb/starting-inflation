@@ -11,6 +11,8 @@ from run import lamda
 from run import Rmax
 from run import timestep
 
+#import time
+
 # Read in the data
 with open(params.filename) as f:
     data = f.readlines()
@@ -52,3 +54,6 @@ for i in range(blackout,factoid):
 infend_index = eps_values.index(min(eps_values))
 infend_timestamp = eps_times[infend_index]
 infend_physical_time = infend_timestamp * timestep
+
+
+
