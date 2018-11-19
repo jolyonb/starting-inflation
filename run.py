@@ -19,11 +19,8 @@ phi0dot = 0.001
 Hback0 = np.sqrt((1.0/3.0)*(0.5*phi0dot*phi0dot + (1.0/4.0)*lamda*phi0**(4.0)))
 print("H0 (for R and \kappa): {0}".format(Hback0))
 Rmax = 2.0/Hback0
-#Rmax = 2.0
 k_modes = 40
-#k_modes = 6
 kappa = 20.0*Hback0
-#kappa = 0.18
 hartree = True
 filename = "output.dat"
 filename2 = "output2.dat"
