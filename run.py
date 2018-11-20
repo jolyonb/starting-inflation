@@ -17,14 +17,14 @@ phi0 = 30.0
 phi0dot = -0.005
 Hback0 = np.sqrt((0.5*phi0dot*phi0dot + (1/4)*lamda*phi0**(4))/3)
 Rmax = 2.0/Hback0
-k_modes = 20
+k_modes = 2
 kappa = 20.0*Hback0
 hartree = True
 filename = "output.dat"
 filename2 = "output2.dat"
 perturbed_ratio = 0.1
 
-###### debug 20. Nov 2018 to check why Bunch-Davies is returning nonsense
+###### debug 20. Nov 2018 to check why Bunch-Davies is slightly off a.c.t. Mathematica nb
 print ("Hback0:", Hback0)
 print ("Rmax:", Rmax)
 print ("kappa:", kappa)

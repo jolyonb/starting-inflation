@@ -78,6 +78,9 @@ a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpack(result
 # check that Mathematica notebook gives same output
 print ("twopointBD:", hpotential0[0])
 print ("deltarho2:", deltarho2[0])
+print ("deltarho2_potential:", (hpotential0[0]*Vdd[0]/2))
+print ("deltarho2_kinetic:", (hkinetic0[0]/2))
+
 
 phi = [None] * params.k_modes
 phidot = [None] * params.k_modes
