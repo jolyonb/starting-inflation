@@ -23,10 +23,13 @@ hartree = True
 filename = "output.dat"
 filename2 = "output2.dat"
 perturbed_ratio = 0.1
+
 ###### debug 20. Nov 2018 to check why Bunch-Davies is returning nonsense
 print ("Hback0:", Hback0)
 print ("Rmax:", Rmax)
+print ("kappa:", kappa)
 ###### end debug
+
 randomize = False
 seed = None
 solution = 1

@@ -75,9 +75,9 @@ a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpack(result
 (H, Hdot, addot, phi0ddot, hpotential0, hgradient0, hkinetic0, rho, 
     deltarho2, hubble_violation, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
 
-# print("t: {0}".format(len(t)))
-# print("adot: {0}".format(len(adot)))
-# print("addot: {0}".format(len(addot)))
+# check that Mathematica notebook gives same output
+print ("twopointBD:", hpotential0[0])
+print ("deltarho2:", deltarho2[0])
 
 phi = [None] * params.k_modes
 phidot = [None] * params.k_modes
