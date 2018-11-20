@@ -241,13 +241,20 @@ def make_initial_data(phi0, phi0dot, Rmax, k_modes, hartree, lamda, kappa,
             poscoeffs[1][i] = P
             velcoeffs[1][i] = V
     else:
-        #Bunch-Davies initial conditions
+        # Bunch-Davies initial conditions
         H0back = np.sqrt((1.0/3.0)*compute_rho(phi0, phi0dot, params))
-        poscoeffs[0] = np.array([1/np.sqrt(2*params.k_grids[0][i]) for i in range(len(params.k_grids[0]))])
-        velcoeffs[0] = np.array([(np.sqrt(params.k_grids[0][i])/2.0)*(-1j-H0back/params.k_grids[0][i]) for i in range(len(params.k_grids[0]))])
+        poscoeffs[0] = 1/np.sqrt(2*params.k_grids[0])
+        velcoeffs[0] = 0*(np.sqrt(params.k_grids[0])/2.0)*(-1j-H0back/params.k_grids[0])
         poscoeffs[1] = [np.ones_like(params.k_grids[1])] * 3
         velcoeffs[1] = [1j*np.ones_like(params.k_grids[1])] * 3
+        # poscoeffs[1] = [0*np.ones_like(params.k_grids[1])] * 3
+        # velcoeffs[1] = [0*1j*np.ones_like(params.k_grids[1])] * 3
        
+
+        # debug 20. Nov 2018 to check why Bunch-Davies is returning nonsense
+        print ("k_grids[0]:",params.k_grids[0])
+        print ("k_grids[1]:",params.k_grids[1])
+
     # Attach these to params
     params.poscoeffs = poscoeffs
     params.velcoeffs = velcoeffs
@@ -333,3 +340,4 @@ def unpack(data, total_wavenumbers):
 
     # Return the results
     return a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB
+

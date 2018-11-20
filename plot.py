@@ -78,7 +78,6 @@ a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpack(result
 # print("t: {0}".format(len(t)))
 # print("adot: {0}".format(len(adot)))
 # print("addot: {0}".format(len(addot)))
-print (t[-1])
 
 phi = [None] * params.k_modes
 phidot = [None] * params.k_modes
@@ -138,7 +137,7 @@ today = f"{datetime.datetime.now():%m-%d-%Y}"
 strplots = today+'_plots'+'.pdf'
 pdf_pages = PdfPages(strplots)
 
-x_domain = end_time
+x_domain = t[-1]
 
 # print initial conditions
 fig0 = plt.figure()
@@ -154,9 +153,11 @@ ax.text(0.05,0.65, '$\\dot{\\phi}_{0}$='+str(phi0dot[0]))
 ax.text(0.05,0.60, '$a_{0}$='+str(a[0]))
 ax.text(0.05,0.55, '$H_{0}$='+str(round(H[0],6)))
 ax.text(0.05,0.50, '$\\frac{H_{0}^{2}}{4\\pi^{2}}$='+str(round(H[0]*H[0]/(2*2*np.pi*np.pi),6)))
-ax.text(0.05,0.45, '$<(\\delta\\phi)^{2}>_{t_{0}} / \\frac{H_{0}^{2}}{4\\pi^{2}} $='+str(round(hpotential0[0]/(H[0]*H[0]/(2*2*np.pi*np.pi)),1)))
+ax.text(0.05,0.45, '$ratio$='+str(round(hpotential0[0] / (H[0]*H[0]/(2*2*np.pi*np.pi)),2)))
 ax.text(0.05, 0.40, '$N_{e-folds}$='+str(round(Nef,1)))
 ax.text(0.05, 0.35, '$n_{max}$='+str(round(params.k_modes,1)))
+
+print ("hpotential0", hpotential0[0])
 
 for i in range(params.k_modes):
 	ax.text(0.05, 0.30 - 0.05*i, '$\\delta\\phi$' + '$k$' + str(i+1) +
@@ -181,7 +182,7 @@ pdf_pages.savefig(fig0)
 # plot background quantities
 fig1 = plt.figure(figsize=(14.0,14.0),dpi=100)
 
-fig1_xlim = 1000
+fig1_xlim = t[-1]
 
 plt.subplot(2,2,1)
 plt.plot(t, H)
@@ -198,23 +199,22 @@ plt.xlabel(' t ')
 plt.ylabel('$\\phi$')
 plt.xlim((0.0, fig1_xlim))
 
-# plt.subplot(2,2,3)
-# plt.plot(t, -Hdot/(H*H))
+plt.subplot(2,2,3)
+plt.plot(t, -Hdot/(H*H))
 # plt.plot(t, eps, 'b-')
 # plt.plot(t[0:indend], eps[0:indend], 'g-')
 # plt.axvline(tinf_end, linestyle='--', color='black')
-# plt.xlabel(' t ')
-# plt.ylabel('$\\epsilon$')
-# plt.xlim((0.0, fig1_xlim))
-# plt.ylim((0.0,3.0))
+plt.xlabel(' t ')
+plt.ylabel('$\\epsilon$')
+plt.xlim((0.0, fig1_xlim))
+plt.ylim((0.0,3.0))
 
 pdf_pages.savefig(fig1)
 
 
 # plot energy densities and ratios
 fig2 = plt.figure(figsize=(14.0,14.0),dpi=100)
-
-fig2_xlim = 60.0*np.sqrt(1e-6/lamda)
+fig2_xlim = t[-1]
 
 plt.subplot(2,3,1)
 plt.plot(t, np.log10(rho))
@@ -258,9 +258,7 @@ pdf_pages.savefig(fig2)
 
 # plot energy densities and ratios
 fig3 = plt.figure(figsize=(14.0,14.0),dpi=100)
-
-#fig3_xlim = x_domain
-fig3_xlim = tinf_end + tinf_end/100.0
+fig3_xlim = t[-1]
 
 plt.subplot(2,3,1)
 plt.plot(t, np.log10(rho))
@@ -309,9 +307,7 @@ pdf_pages.savefig(fig3)
 
 # plot the dimensionless power spectrum for Psi modes
 fig4 = plt.figure(figsize=(14.0,14.0),dpi=100)
-
-fig4_xlim = tinf_end + tinf_end/100.0
-
+fig4_xlim = t[-1]
 
 plt.subplot(2,1,1)
 for i in range(params.k_modes):
@@ -334,9 +330,7 @@ pdf_pages.savefig(fig4)
 
 # plot the dimensionless power spectrum for phi modes
 fig5 = plt.figure(figsize=(14.0,14.0),dpi=100)
-
-#fig5_xlim = x_domain
-fig5_xlim = tinf_end + tinf_end/100.0
+fig5_xlim = t[-1]
 
 plt.subplot(2,1,1)
 for i in range(params.k_modes):
@@ -356,11 +350,9 @@ plt.xlim((0.0,fig5_xlim))
 pdf_pages.savefig(fig5)
 
 
+# plot 
 fig6 = plt.figure(figsize=(14.0,14.0),dpi=100)
-
-#fig6_xlim = x_domain
-fig6_xlim = tinf_end + tinf_end/100.0
-fig6_ylim = 0.01
+fig6_xlim = t[-1]
 
 plt.subplot(2,1,1)
 for i in range(params.k_modes):
@@ -369,7 +361,7 @@ for i in range(params.k_modes):
     plt.plot(t, np.imag(psi_constraint_complex),'--')
 plt.xlabel(' t ')
 plt.xlim((0, 60.0*np.sqrt(1e-6/lamda)))
-plt.ylim((-fig6_ylim, fig6_ylim))
+#plt.ylim((-fig6_ylim, fig6_ylim))
 plt.ylabel('$ C_{k} $')
 
 plt.subplot(2,1,2)
@@ -380,17 +372,14 @@ for i in range(params.k_modes):
 plt.axvline(tinf_end, linestyle='--', color='black')
 plt.xlabel(' t ')
 plt.xlim((0, fig6_xlim))
-plt.ylim((-fig6_ylim, fig6_ylim))
+#plt.ylim((-fig6_ylim, fig6_ylim))
 plt.ylabel('$ C_{k} $')
 
 pdf_pages.savefig(fig6)
 
-
+# plot 
 fig7 = plt.figure(figsize=(14.0,14.0),dpi=100)
-
-#fig7_xlim = x_domain
-fig7_xlim = tinf_end + tinf_end/100.0
-fig7_ylim = 40.0
+fig7_xlim = t[-1]
 
 plt.subplot(2,1,1)
 for i in range(params.k_modes):
@@ -398,7 +387,7 @@ for i in range(params.k_modes):
 plt.xlabel(' t ')
 plt.ylabel('$\\sigma_{k}$')
 plt.xlim((0.0,50.0*np.sqrt(1e-6/lamda)))
-plt.ylim((-fig7_ylim, fig7_ylim))
+#plt.ylim((-fig7_ylim, fig7_ylim))
 
 plt.subplot(2,1,2)
 for i in range(params.k_modes):
@@ -407,16 +396,13 @@ plt.axvline(tinf_end, linestyle='--', color='black')
 plt.xlabel(' t ')
 plt.ylabel('$\\sigma_{k}$')
 plt.xlim((0.0,fig7_xlim))
-plt.ylim((-fig7_ylim, fig7_ylim))
+#plt.ylim((-fig7_ylim, fig7_ylim))
 
 pdf_pages.savefig(fig7)
 
 
 fig8 = plt.figure(figsize=(14.0,14.0),dpi=100)
-
-#fig8_xlim = x_domain
-fig8_xlim = tinf_end + tinf_end/100.0
-fig8_ylim = 40.0
+fig8_xlim = t[-1]
 
 plt.subplot(2,1,1)
 for i in range(params.k_modes):
@@ -424,7 +410,7 @@ for i in range(params.k_modes):
 plt.xlabel(' t ')
 plt.ylabel('$\\sigma_{k}$')
 plt.xlim((0.0,50.0*np.sqrt(1e-6/lamda)))
-plt.ylim((-fig8_ylim, fig8_ylim))
+#plt.ylim((-fig8_ylim, fig8_ylim))
 
 plt.subplot(2,1,2)
 for i in range(params.k_modes):
@@ -433,16 +419,13 @@ plt.axvline(tinf_end, linestyle='--', color='black')
 plt.xlabel(' t ')
 plt.ylabel('$\\sigma_{k}$')
 plt.xlim((0.0,fig8_xlim))
-plt.ylim((-fig8_ylim, fig8_ylim))
+#plt.ylim((-fig8_ylim, fig8_ylim))
 
 pdf_pages.savefig(fig8)
 
 
 fig9 = plt.figure(figsize=(14.0,14.0),dpi=100)
-
-#fig9_xlim = x_domain
-fig9_xlim = tinf_end + tinf_end/100.0
-fig9_ylim = 0.0005
+fig9_xlim = t[-1]
 
 plt.subplot(2,1,1)
 for i in range(params.k_modes):
@@ -452,7 +435,7 @@ plt.ylabel('$\\dot{H}+\\frac{k_{2}}{a_{2}}$')
 # plt.xlim((25.0,45.0))
 plt.xlim((0.0,50.0*np.sqrt(1e-6/lamda)))
 # plt.ylim((-0.0005, 0.0005))
-plt.ylim((-fig9_ylim, fig9_ylim))
+#plt.ylim((-fig9_ylim, fig9_ylim))
 
 plt.subplot(2,1,2)
 for i in range(params.k_modes):
@@ -463,21 +446,8 @@ plt.ylabel('$\\dot{H}+\\frac{k_{2}}{a_{2}}$')
 # plt.xlim((25.0,45.0))
 plt.xlim((0.0,fig9_xlim))
 # plt.ylim((-0.0005, 0.0005))
-plt.ylim((-fig9_ylim, fig9_ylim))
+#plt.ylim((-fig9_ylim, fig9_ylim))
 
 pdf_pages.savefig(fig9)
 
-
-# fig7 = plt.figure(figsize=(14.0,14.0),dpi=100)
-
-# for i in range(params.k_modes):
-#     plt.subplot(2,3,i+1)
-#     plt.plot(t, (params.k_grids[0][i]*params.k_grids[0][i]/(a*a)) + Vdd - 2*phi0dot*phi0dot + script_M(i))
-#     plt.xlabel(' t ')
-#     plt.ylabel('$\\omega^{2}_{k}$')
-#     # plt.ylim((-10.0,10.0))
-
-# pdf_pages.savefig(fig7)
-
 pdf_pages.close()
-

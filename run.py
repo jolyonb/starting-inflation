@@ -12,25 +12,24 @@ import numpy as np
 
 # Construct parameters and initial data
 debug = False
-lamda = 1e-6
-phi0 = 25.0
-phi0dot = 0.001
-#define a couple parameters in terms of H_{0} (which we approximate by its background value here -- Hback0 -- the true H_{0} will have a small correction from this due to the inclusion of \delta \rho2)
-Hback0 = np.sqrt((1.0/3.0)*(0.5*phi0dot*phi0dot + (1.0/4.0)*lamda*phi0**(4.0)))
-print("H0: {0}".format(Hback0))
+lamda = 1e-9
+phi0 = 30.0
+phi0dot = -0.005
+Hback0 = np.sqrt((0.5*phi0dot*phi0dot + (1/4)*lamda*phi0**(4))/3)
 Rmax = 2.0/Hback0
-k_modes = 40
+k_modes = 20
 kappa = 20.0*Hback0
 hartree = True
 filename = "output.dat"
 filename2 = "output2.dat"
-
 perturbed_ratio = 0.1
-
+###### debug 20. Nov 2018 to check why Bunch-Davies is returning nonsense
+print ("Hback0:", Hback0)
+print ("Rmax:", Rmax)
+###### end debug
 randomize = False
 seed = None
 solution = 1
-
 params, initial_data = make_initial_data(phi0, phi0dot, Rmax, k_modes, hartree,
                                          lamda, kappa, perturbed_ratio, randomize, seed, solution, filename, filename2)
 
@@ -39,7 +38,7 @@ params, initial_data = make_initial_data(phi0, phi0dot, Rmax, k_modes, hartree,
 # Specify timing information
 start_time = 0
 end_time = 5000*np.sqrt(1e-6/lamda)
-timestep = 0.5
+timestep = 0.5*np.sqrt(1e-6/lamda)
 
 # Perform the run
 if __name__ == "__main__":
