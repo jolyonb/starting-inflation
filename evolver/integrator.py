@@ -233,6 +233,12 @@ class Driver(object):
         # Integration loop
         newtime = self.data.time
         while True:
+            # Check to see if we're finished
+            if newtime >= self.end_time:
+                self.status = Status.Finished
+                self.data.parameters.close_file()
+                return
+
             # Construct the time to integrate to
             # We try to keep the timing roughly the same between runs
             while newtime <= self.data.time:
@@ -252,9 +258,3 @@ class Driver(object):
             # Write the data
             self.data.write_data()
             self.data.write_extra_data()
-
-            # Check to see if we're finished
-            if newtime >= self.end_time:
-                self.status = Status.Finished
-                self.data.parameters.close_file()
-                return

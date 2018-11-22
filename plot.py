@@ -136,7 +136,7 @@ eps = 0.0
 # create pdf output of plots 
 ##########################################
 
-today = f"{datetime.datetime.now():%m-%d-%Y}"
+today = datetime.datetime.now().format('%m-%d-%Y')
 strplots = today+'_plots'+'.pdf'
 pdf_pages = PdfPages(strplots)
 

@@ -4,47 +4,42 @@
 Performs an evolution
 """
 import time
-import sys
-from integrator import Driver, Status
-from initialize import make_initial_data, Model
+from math import sqrt
+from evolver.integrator import Driver, Status
+from evolver.initialize import make_initial_data, Model
+from evolver.model import LambdaPhi4
 
-import numpy as np
-
-# Construct parameters and initial data
+# Initialize all settings
 debug = False
-lamda = 1e-9
-phi0 = 30.0
-phi0dot = -0.005
-Hback0 = np.sqrt((0.5*phi0dot*phi0dot + (1/4)*lamda*phi0**(4))/3)
-Rmax = 2.0/Hback0
-k_modes = 2
-kappa = 20.0*Hback0
 hartree = True
-filename = "output.dat"
-filename2 = "output2.dat"
-perturbed_ratio = 0.1
+k_modes = 2
+l1modeson = False
+performrun = False
+filename = "data/output.dat"
+filename2 = "data/output2.dat"
 
-###### debug 20. Nov 2018 to check why Bunch-Davies is slightly off a.c.t. Mathematica nb
-print ("Hback0:", Hback0)
-print ("Rmax:", Rmax)
-print ("kappa:", kappa)
-###### end debug
+# Inflation model
+infmodel = LambdaPhi4(lamda=1e-9)
 
-randomize = False
-seed = None
-solution = 1
-params, initial_data = make_initial_data(phi0, phi0dot, Rmax, k_modes, hartree,
-                                         lamda, kappa, perturbed_ratio, randomize, seed, solution, filename, filename2)
-
-# sys.exit()
+# Background fields
+phi0 = 30
+phi0dot = -0.005
 
 # Specify timing information
 start_time = 0
-end_time = 5000*np.sqrt(1e-6/lamda)
-timestep = 0.5*np.sqrt(1e-6/lamda)
+end_time = 5000*sqrt(1e-6/infmodel.lamda)
+timestep = 0.5*sqrt(1e-6/infmodel.lamda)
+
+# Construct parameters class and initial data
+params, initial_data = make_initial_data(phi0, phi0dot, k_modes, hartree, infmodel,
+                                         filename, filename2, l1modeson=l1modeson)
 
 # Perform the run
 if __name__ == "__main__":
+    # Do we run?
+    if not performrun:
+        end_time = 0
+
     # Construct the driver
     driver = Driver(Model, initial_data, params, start_time, end_time, timestep, debug=debug)
 
