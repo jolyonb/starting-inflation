@@ -12,11 +12,11 @@ from evolver.model import LambdaPhi4
 # Initialize all settings
 debug = False
 hartree = True
-k_modes = 2
-l1modeson = False
+k_modes = 40
+l1modeson = True
 performrun = False
-filename = "data/output.dat"
-filename2 = "data/output2.dat"
+filename = "output.dat"
+filename2 = "output2.dat"
 
 # Inflation model
 infmodel = LambdaPhi4(lamda=1e-9)

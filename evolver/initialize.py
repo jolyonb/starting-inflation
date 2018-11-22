@@ -212,19 +212,20 @@ def make_initial_data(phi0, phi0dot, k_modes, hartree, model,
     a = 1
 
     # Generate coefficients for all of the modes
-    poscoeffs = [None, None]
-    velcoeffs = [None, None]
+    poscoeffs = [None, [None]*3]
+    velcoeffs = [None, [None]*3]
 
     # Bunch-Davies initial conditions
     poscoeffs[0] = 1 / np.sqrt(2*params.k_grids[0])
-    velcoeffs[0] = (np.sqrt(params.k_grids[0]) / 2) * (-1j - H0 / params.k_grids[0])
+    velcoeffs[0] = np.sqrt(params.k_grids[0] / 2) * (-1j - H0 / params.k_grids[0])
     if l1modeson:
         for i in range(3):
             poscoeffs[1][i] = 1 / np.sqrt(2*params.k_grids[1])
-            velcoeffs[1][i] = (np.sqrt(params.k_grids[1]) / 2) * (-1j - H0 / params.k_grids[1])
+            velcoeffs[1][i] = np.sqrt(params.k_grids[1] / 2) * (-1j - H0 / params.k_grids[1])
     else:
-        poscoeffs[1] = [0 * np.ones_like(params.k_grids[1])] * 3
-        velcoeffs[1] = [0 * np.ones_like(params.k_grids[1])] * 3
+        for i in range(3):
+            poscoeffs[1][i] = np.zeros_like(params.k_grids[1])
+            velcoeffs[1][i] = np.zeros_like(params.k_grids[1])
 
     # Attach these to params
     params.poscoeffs = poscoeffs
