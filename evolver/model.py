@@ -4,9 +4,6 @@ model
 Describes an inflationary model
 """
 
-class NotImplementedError(Exception):
-    """Raised when a required routine is not implemented in a subclass"""
-
 class InflationModel(object):
     def __init__(self, **kwargs):
         """
