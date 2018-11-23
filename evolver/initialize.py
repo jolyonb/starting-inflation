@@ -11,7 +11,8 @@ from evolver.besselroots import get_jn_roots
 from evolver.integrator import AbstractModel, AbstractParameters
 from evolver.eoms import (eoms, compute_hubble, compute_initial_psi, compute_hartree,
                           compute_hubbledot, compute_phi0ddot, compute_rho, compute_deltarho2,
-                          compute_hubble_constraint_viol)
+                          compute_hubble_constraint_viol, slow_roll_epsilon)
+from evolver.errors import TerminatedError
 
 class Parameters(AbstractParameters):
     """
@@ -38,6 +39,10 @@ class Parameters(AbstractParameters):
         self.kappa = kappa
         self.filename = filename
         self.filename2 = filename2
+        self.halt = False
+
+        # Initialize evolution
+        self.slowroll = False
 
         # Set up the wavenumber grids
         self.k_grids = get_jn_roots(1, self.k_modes)
@@ -97,12 +102,24 @@ class Model(AbstractModel):
         """
         # Unpack the data
         unpacked_data = unpack(data, self.parameters.total_wavenumbers)
-        _, adot, _, phi0dot, _, phidotA, _, _, phidotB, _ = unpacked_data
+        a, adot, _, phi0dot, _, phidotA, _, _, phidotB, _ = unpacked_data
+
+        # Sanity checks
+        if adot < 0:
+            # We've overshot, likely due to error tolerances being too large
+            raise TerminatedError("H became negative due to error tolerances being too large")
 
         # Use the equations of motion
         addot, phi0ddot, phiddotA, psidotA, phiddotB, psidotB = eoms(unpacked_data,
                                                                      self.parameters,
                                                                      time)
+
+        # Check for slowroll
+        epsilon = slow_roll_epsilon(a, adot, addot)
+        if epsilon < 0.1:
+            self.parameters.slowroll = True
+        elif self.parameters.slowroll and epsilon >= 1:
+            self.parameters.halt = True
 
         # Combine everything into a single array
         return pack(adot, addot, phi0dot, phi0ddot,

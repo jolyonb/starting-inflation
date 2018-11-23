@@ -84,10 +84,7 @@ class AbstractModel(object):
                 stepcount += 1
                 last_time = self.time
                 # step=True says to take a single step, which may overshoot newtime
-                try:
-                    results = self.integrator.integrate(newtime, step=True)
-                except TerminateError:
-                    raise
+                results = self.integrator.integrate(newtime, step=True)
                 if not self.integrator.successful():
                     raise IntegrationError("DOPRI Error Code {}"
                                            .format(self.integrator.get_return_code()))
@@ -231,10 +228,9 @@ class Driver(object):
         newtime = self.data.time
         while True:
             # Check to see if we're finished
-            if newtime >= self.end_time:
+            if newtime >= self.end_time or self.parameters.halt:
                 self.status = Status.Finished
-                self.data.parameters.close_file()
-                return
+                break
 
             # Construct the time to integrate to
             # We try to keep the timing roughly the same between runs
@@ -249,14 +245,15 @@ class Driver(object):
             except IntegrationError as e:
                 self.status = Status.IntegrationError
                 self.error_msg = e.args[0]
-                self.data.parameters.close_file()
-                return
+                break
             except TerminateError as e:
                 self.status = Status.Terminated
                 self.error_msg = e.args[0]
-                self.data.parameters.close_file()
-                return
+                break
 
             # Write the data
             self.data.write_data()
             self.data.write_extra_data()
+
+        # Close the files before returning
+        self.data.parameters.close_file()
