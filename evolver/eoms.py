@@ -5,7 +5,6 @@ Computes the equations of motion associated with a model
 """
 from math import pi, sqrt
 import numpy as np
-from evolver.errors import TerminatedError
 
 def eoms(unpacked_data, params, time=None):
     """
@@ -23,11 +22,6 @@ def eoms(unpacked_data, params, time=None):
     # Initialization
     a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
     H = adot/a
-
-    # Sanity checks
-    if adot < 0:
-        # We've overshot, likely due to error tolerances being too large
-        raise TerminatedError("H became negative due to error tolerances being too large")
 
     # Compute 2-point functions if needed
     if params.hartree:
@@ -48,6 +42,17 @@ def eoms(unpacked_data, params, time=None):
 
     # Return results
     return addot, phi0ddot, phiddotA, psidotA, phiddotB, psidotB
+
+def slow_roll_epsilon(a, adot, addot):
+    """Computes the slow roll parameter epsilon from a, adot and addot"""
+    H = adot / a
+    H2 = H*H
+    Hdot = addot / a - H2
+    return -Hdot / H2
+
+def N_efolds(a):
+    """Computes the number of efolds that have passed given the current scalefactor"""
+    return np.ln(a)
 
 def compute_hubble(rho, deltarho2):
     """
