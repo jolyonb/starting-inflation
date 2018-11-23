@@ -14,7 +14,7 @@ debug = False
 hartree = True
 k_modes = 40
 l1modeson = True
-performrun = False
+performrun = True
 filename = "output.dat"
 filename2 = "output2.dat"
 
@@ -55,5 +55,7 @@ if __name__ == "__main__":
     # Check to see what our status is
     if driver.status == Status.IntegrationError:
         print("Unable to integrate further: {}".format(driver.error_msg))
+    elif driver.status == Status.Terminated:
+        print("Evolution completed with message: {}".format(driver.error_msg))
     elif driver.status == Status.Finished:
         print("Evolution completed!")

@@ -10,6 +10,7 @@ AbstractModel
 """
 from enum import Enum
 from scipy.integrate import ode
+from evolver.errors import IntegrationError, TerminateError
 
 class Status(Enum):
     """Status of Driver object"""
@@ -17,14 +18,7 @@ class Status(Enum):
     OK = 1
     Finished = 2
     IntegrationError = -1
-
-
-class IntegrationError(Exception):
-    """Raised when an integration error arises"""
-
-
-class NotImplementedError(Exception):
-    """Raised when a required method is not implemented by the implementing class"""
+    Terminated = -2
 
 
 class AbstractModel(object):
@@ -90,7 +84,10 @@ class AbstractModel(object):
                 stepcount += 1
                 last_time = self.time
                 # step=True says to take a single step, which may overshoot newtime
-                results = self.integrator.integrate(newtime, step=True)
+                try:
+                    results = self.integrator.integrate(newtime, step=True)
+                except TerminateError:
+                    raise
                 if not self.integrator.successful():
                     raise IntegrationError("DOPRI Error Code {}"
                                            .format(self.integrator.get_return_code()))
@@ -141,7 +138,7 @@ class AbstractModel(object):
         Note that this method has access to self.parameters
         Must be implemented by a model
         """
-        raise NotImplementedError("Model.derivatives")
+        raise NotImplementedError()
 
 
 class AbstractParameters(object):
@@ -251,6 +248,11 @@ class Driver(object):
                 self.data.step(newtime)
             except IntegrationError as e:
                 self.status = Status.IntegrationError
+                self.error_msg = e.args[0]
+                self.data.parameters.close_file()
+                return
+            except TerminateError as e:
+                self.status = Status.Terminated
                 self.error_msg = e.args[0]
                 self.data.parameters.close_file()
                 return
