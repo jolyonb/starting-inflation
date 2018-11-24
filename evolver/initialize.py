@@ -12,7 +12,6 @@ from evolver.integrator import AbstractModel, AbstractParameters
 from evolver.eoms import (eoms, compute_hubble, compute_initial_psi, compute_hartree,
                           compute_hubbledot, compute_phi0ddot, compute_rho, compute_deltarho2,
                           compute_hubble_constraint_viol, slow_roll_epsilon)
-from evolver.errors import TerminateError
 
 class Parameters(AbstractParameters):
     """
@@ -38,6 +37,7 @@ class Parameters(AbstractParameters):
         self.kappa = kappa
         self.filename = filename
         self.halt = False
+        self.haltmsg = ""
 
         # Initialize evolution
         self.slowroll = False
@@ -141,7 +141,8 @@ class Model(AbstractModel):
         # Sanity checks
         if adot < 0:
             # We've overshot, likely due to error tolerances being too large
-            raise TerminateError("H became negative due to error tolerances being too large")
+            self.parameters.halt = True
+            self.parameters.haltmsg = "H became negative due to error tolerances being too large"
 
         # Use the equations of motion
         addot, phi0ddot, phiddotA, psidotA, phiddotB, psidotB = eoms(unpacked_data,
@@ -154,11 +155,17 @@ class Model(AbstractModel):
             self.parameters.slowroll = True
         elif self.parameters.slowroll and epsilon >= 1:
             self.parameters.halt = True
+            self.parameters.haltmsg = "Inflation has ended"
 
         # Combine everything into a single array
         return pack(adot, addot, phi0dot, phi0ddot,
                     phidotA, phiddotA, psidotA,
                     phidotB, phiddotB, psidotB)
+
+    def solout(self, t, data):
+        if self.parameters.halt:
+            return -1
+        return 0
 
     def write_extra_data(self):
         """

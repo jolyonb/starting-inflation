@@ -21,8 +21,8 @@ filename = "data/output"
 infmodel = LambdaPhi4(lamda=1e-9)
 
 # Background fields
-phi0 = 30
-phi0dot = -0.005
+phi0 = 25.0
+phi0dot = -0.02
 
 # Specify timing information
 start_time = 0

@@ -10,7 +10,7 @@ AbstractModel
 """
 from enum import Enum
 from scipy.integrate import ode
-from evolver.errors import IntegrationError, TerminateError
+from evolver.errors import IntegrationError
 
 class Status(Enum):
     """Status of Driver object"""
@@ -53,6 +53,10 @@ class AbstractModel(object):
                                                                rtol=rtol,
                                                                atol=atol)
         self.integrator.set_initial_value(initial_data, start_time)
+        self.integrator.set_solout(self.solout)
+
+    def solout(self, t, data):
+        raise NotImplementedError()
 
     @property
     def time(self):
@@ -243,8 +247,12 @@ class Driver(object):
         newtime = self.data.time
         while True:
             # Check to see if we're finished
-            if newtime >= self.end_time or self.data.parameters.halt:
+            if newtime >= self.end_time:
                 self.status = Status.Finished
+                break
+            elif self.data.parameters.halt:
+                self.status = Status.Terminated
+                self.error_msg = self.data.parameters.haltmsg
                 break
 
             # Construct the time to integrate to
@@ -259,10 +267,6 @@ class Driver(object):
                 self.data.step(newtime)
             except IntegrationError as e:
                 self.status = Status.IntegrationError
-                self.error_msg = e.args[0]
-                break
-            except TerminateError as e:
-                self.status = Status.Terminated
                 self.error_msg = e.args[0]
                 break
 

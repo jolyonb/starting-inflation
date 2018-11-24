@@ -52,7 +52,7 @@ def slow_roll_epsilon(a, adot, addot):
 
 def N_efolds(a):
     """Computes the number of efolds that have passed given the current scalefactor"""
-    return np.ln(a)
+    return np.log(a)
 
 def compute_hubble(rho, deltarho2):
     """
