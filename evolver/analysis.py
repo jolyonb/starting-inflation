@@ -25,6 +25,6 @@ def analyze(a, adot, addot):
     results["inflationended"] = epsilon[-1] >= 1
 
     # Number of efolds passed
-    results["efolds"] = N_efolds[a[-1]]
+    results["efolds"] = N_efolds(a[-1])
 
     return results
