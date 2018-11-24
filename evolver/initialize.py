@@ -12,7 +12,6 @@ from evolver.integrator import AbstractModel, AbstractParameters
 from evolver.eoms import (eoms, compute_hubble, compute_initial_psi, compute_hartree,
                           compute_hubbledot, compute_phi0ddot, compute_rho, compute_deltarho2,
                           compute_hubble_constraint_viol, slow_roll_epsilon)
-from evolver.errors import TerminateError
 
 class Parameters(AbstractParameters):
     """
@@ -38,6 +37,7 @@ class Parameters(AbstractParameters):
         self.kappa = kappa
         self.filename = filename
         self.halt = False
+        self.haltmsg = ""
 
         # Initialize evolution
         self.slowroll = False
@@ -87,7 +87,7 @@ class Parameters(AbstractParameters):
         """
         Writes initialization info to file.
         """
-        self.write_info_line("Evolution Information" + "")
+        self.write_info_line("Evolution Information")
         self.write_info_line("Number of l=0 modes: {}".format(self.k_modes))
         self.write_info_line("Number of l=1 modes: {}".format(self.k_modes - 1))
         self.write_info_line("Hartree corrections on: {}".format(self.hartree))
@@ -110,9 +110,14 @@ class Parameters(AbstractParameters):
         self.write_info_line("Initial phi0: {}".format(phi0))
         self.write_info_line("Initial phi0dot: {}".format(phi0dot))
         self.write_info_line("Initial H: {}".format(H))
+
         self.write_info_line("Initial rho: {}".format(rho))
         self.write_info_line("Initial deltarho2: {}".format(deltarho2))
+        self.write_info_line("deltarho2/rho: {}".format(deltarho2/rho))
+
         self.write_info_line("Initial <deltaphi^2>: {}".format(phi2pt))
+        ratio = phi2pt/(self.kappa**2/4/np.pi**2)
+        self.write_info_line(r"<deltaphi^2> / (H^2 \bar\kappa^2 / (4 pi^2)): {}".format(ratio))
 
 class Model(AbstractModel):
     """The model to be integrated"""
@@ -136,7 +141,8 @@ class Model(AbstractModel):
         # Sanity checks
         if adot < 0:
             # We've overshot, likely due to error tolerances being too large
-            raise TerminateError("H became negative due to error tolerances being too large")
+            self.parameters.halt = True
+            self.parameters.haltmsg = "H became negative due to error tolerances being too large"
 
         # Use the equations of motion
         addot, phi0ddot, phiddotA, psidotA, phiddotB, psidotB = eoms(unpacked_data,
@@ -149,11 +155,17 @@ class Model(AbstractModel):
             self.parameters.slowroll = True
         elif self.parameters.slowroll and epsilon >= 1:
             self.parameters.halt = True
+            self.parameters.haltmsg = "Inflation has ended"
 
         # Combine everything into a single array
         return pack(adot, addot, phi0dot, phi0ddot,
                     phidotA, phiddotA, psidotA,
                     phidotB, phiddotB, psidotB)
+
+    def solout(self, t, data):
+        if self.parameters.halt:
+            return -1
+        return 0
 
     def write_extra_data(self):
         """
