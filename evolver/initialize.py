@@ -87,7 +87,7 @@ class Parameters(AbstractParameters):
         """
         Writes initialization info to file.
         """
-        self.write_info_line("Evolution Information" + "")
+        self.write_info_line("Evolution Information")
         self.write_info_line("Number of l=0 modes: {}".format(self.k_modes))
         self.write_info_line("Number of l=1 modes: {}".format(self.k_modes - 1))
         self.write_info_line("Hartree corrections on: {}".format(self.hartree))
@@ -110,9 +110,14 @@ class Parameters(AbstractParameters):
         self.write_info_line("Initial phi0: {}".format(phi0))
         self.write_info_line("Initial phi0dot: {}".format(phi0dot))
         self.write_info_line("Initial H: {}".format(H))
+
         self.write_info_line("Initial rho: {}".format(rho))
         self.write_info_line("Initial deltarho2: {}".format(deltarho2))
+        self.write_info_line("deltarho2/rho: {}".format(deltarho2/rho))
+
         self.write_info_line("Initial <deltaphi^2>: {}".format(phi2pt))
+        ratio = phi2pt/(self.kappa**2/4/np.pi**2)
+        self.write_info_line(r"<deltaphi^2> / (H^2 \bar\kappa^2 / (4 pi^2)): {}".format(ratio))
 
 class Model(AbstractModel):
     """The model to be integrated"""
