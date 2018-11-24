@@ -147,17 +147,31 @@ class AbstractParameters(object):
 
         Returns: None
         """
-        self.f = open(self.filename, "w")
-        self.f2 = open(self.filename2, "w")
+        self.f = open(self.filename + ".dat", "w")
+        self.f2 = open(self.filename + ".dat2", "w")
+        self.f3 = open(self.filename + ".info", "w")
 
     def close_file(self):
         """
-        Closes the file handle
+        Closes the file handles
 
         Returns: None
         """
         self.f.close()
         self.f2.close()
+        self.f3.close()
+
+    def write_info(self, data):
+        """
+        Write initialization info to file
+
+        Returns: None
+        """
+        raise NotImplementedError()
+
+    def write_info_line(self, line):
+        """Writes a line to the information file"""
+        self.f3.write(line + "\n")
 
 
 class Driver(object):
@@ -221,6 +235,7 @@ class Driver(object):
 
         # Write the initial conditions
         self.data.parameters.open_file()
+        self.data.parameters.write_info(self.data.data)
         self.data.write_data()
         self.data.write_extra_data()
 
@@ -228,7 +243,7 @@ class Driver(object):
         newtime = self.data.time
         while True:
             # Check to see if we're finished
-            if newtime >= self.end_time or self.parameters.halt:
+            if newtime >= self.end_time or self.data.parameters.halt:
                 self.status = Status.Finished
                 break
 

@@ -15,8 +15,7 @@ hartree = True
 k_modes = 40
 l1modeson = True
 performrun = True
-filename = "output.dat"
-filename2 = "output2.dat"
+filename = "data/output"
 
 # Inflation model
 infmodel = LambdaPhi4(lamda=1e-9)
@@ -32,7 +31,7 @@ timestep = 0.5*sqrt(1e-6/infmodel.lamda)
 
 # Construct parameters class and initial data
 params, initial_data = make_initial_data(phi0, phi0dot, k_modes, hartree, infmodel,
-                                         filename, filename2, l1modeson=l1modeson)
+                                         filename, l1modeson=l1modeson)
 
 # Perform the run
 if __name__ == "__main__":
