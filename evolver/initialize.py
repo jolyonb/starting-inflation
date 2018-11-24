@@ -12,13 +12,13 @@ from evolver.integrator import AbstractModel, AbstractParameters
 from evolver.eoms import (eoms, compute_hubble, compute_initial_psi, compute_hartree,
                           compute_hubbledot, compute_phi0ddot, compute_rho, compute_deltarho2,
                           compute_hubble_constraint_viol, slow_roll_epsilon)
-from evolver.errors import TerminatedError
+from evolver.errors import TerminateError
 
 class Parameters(AbstractParameters):
     """
     Stores all settings for the evolution, along with the quantities computed from them.
     """
-    def __init__(self, Rmax, k_modes, hartree, model, kappa, filename, filename2):
+    def __init__(self, Rmax, k_modes, hartree, model, kappa, filename):
         """
         Construct grids based on the settings
 
@@ -29,7 +29,6 @@ class Parameters(AbstractParameters):
             * model: InflationModel class
             * kappa: Regularization wavenumber
             * filename: The output file to write to
-            * filename2: The output file for auxiliary variables
         """
         # Store the basic values
         self.Rmax = Rmax
@@ -38,7 +37,6 @@ class Parameters(AbstractParameters):
         self.model = model
         self.kappa = kappa
         self.filename = filename
-        self.filename2 = filename2
         self.halt = False
 
         # Initialize evolution
@@ -85,6 +83,37 @@ class Parameters(AbstractParameters):
             np.exp(-self.k_grids[1]*self.k_grids[1]/factor)
         ]
 
+    def write_info(self, data):
+        """
+        Writes initialization info to file.
+        """
+        self.write_info_line("Evolution Information" + "")
+        self.write_info_line("Number of l=0 modes: {}".format(self.k_modes))
+        self.write_info_line("Number of l=1 modes: {}".format(self.k_modes - 1))
+        self.write_info_line("Hartree corrections on: {}".format(self.hartree))
+        self.write_info_line("R_max: {}".format(self.Rmax))
+        self.write_info_line("kappa: {}".format(self.kappa))
+        self.write_info_line("Model: {}".format(type(self.model).__name__))
+        self.write_info_line(self.model.info())
+
+        unpacked_data = unpack(data, self.total_wavenumbers)
+        a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
+        H = adot/a
+
+        phi2pt, phi2ptdt, phi2ptgrad = compute_hartree(phiA, phidotA,
+                                                       phiB, phidotB,
+                                                       self)
+
+        rho = compute_rho(phi0, phi0dot, self.model)
+        deltarho2 = compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, self.model)
+
+        self.write_info_line("Initial phi0: {}".format(phi0))
+        self.write_info_line("Initial phi0dot: {}".format(phi0dot))
+        self.write_info_line("Initial H: {}".format(H))
+        self.write_info_line("Initial rho: {}".format(rho))
+        self.write_info_line("Initial deltarho2: {}".format(deltarho2))
+        self.write_info_line("Initial <deltaphi^2>: {}".format(phi2pt))
+
 class Model(AbstractModel):
     """The model to be integrated"""
 
@@ -107,7 +136,7 @@ class Model(AbstractModel):
         # Sanity checks
         if adot < 0:
             # We've overshot, likely due to error tolerances being too large
-            raise TerminatedError("H became negative due to error tolerances being too large")
+            raise TerminateError("H became negative due to error tolerances being too large")
 
         # Use the equations of motion
         addot, phi0ddot, phiddotA, psidotA, phiddotB, psidotB = eoms(unpacked_data,
@@ -173,7 +202,7 @@ class Model(AbstractModel):
         self.parameters.f2.write(str(self.time) + sep + sep.join(map(str, extradata)) + "\n")
 
 def make_initial_data(phi0, phi0dot, k_modes, hartree, model,
-                      filename, filename2, Rmaxfactor=2, kappafactor=20, l1modeson=True):
+                      filename, Rmaxfactor=2, kappafactor=20, l1modeson=True):
     """
     Constructs parameters and initial data for the evolution
 
@@ -214,7 +243,7 @@ def make_initial_data(phi0, phi0dot, k_modes, hartree, model,
     kappa = kappafactor * H0
 
     # Construct the parameters
-    params = Parameters(Rmax, k_modes, hartree, model, kappa, filename, filename2)
+    params = Parameters(Rmax, k_modes, hartree, model, kappa, filename)
 
     # How many fields do we have?
     numfields = params.total_wavenumbers

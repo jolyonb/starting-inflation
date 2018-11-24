@@ -41,6 +41,12 @@ class InflationModel(object):
         """
         raise NotImplementedError()
 
+    def info(self):
+        """
+        Returns a string to write to file describing the model
+        """
+        raise NotImplementedError()
+
 class LambdaPhi4(InflationModel):
     def __init__(self, **kwargs):
         self.lamda = kwargs['lamda']
@@ -74,3 +80,9 @@ class LambdaPhi4(InflationModel):
         Value of the fourth derivative of the potential given background field value phi0
         """
         return self.lamda * 6
+
+    def info(self):
+        """
+        Returns a string to write to file describing the model
+        """
+        return "lambda: {}".format(self.lamda)
