@@ -67,7 +67,7 @@ def make_plot(xvals, ylistvals, plottype, numsteps):
 t = results[0]
 a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpack(results[1:], params.total_wavenumbers)
 
-(H, Hdot, addot, phi0ddot, hpotential0, hgradient0, hkinetic0, psi2pt, rho, 
+(H, Hdot, addot, phi0ddot, hpotential0, hgradient0, hkinetic0, rho, 
     deltarho2, hubble_violation, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
 
 # check that Mathematica notebook gives same output
