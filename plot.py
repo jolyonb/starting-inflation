@@ -30,11 +30,10 @@ parser.add_argument("-l", help="Log plot type (0=None, 1=y, 2=x, 3=both)",
 # Parse the command line
 args = parser.parse_args()
 
-
 # Read in the data
-with open(params.filename) as f:
+with open(params.filename+".dat") as f:
     data = f.readlines()
-with open(params.filename2) as f:
+with open(params.filename+".dat2") as f:
     data2 = f.readlines()
 
 # Process the data
@@ -68,7 +67,7 @@ def make_plot(xvals, ylistvals, plottype, numsteps):
 t = results[0]
 a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpack(results[1:], params.total_wavenumbers)
 
-(H, Hdot, addot, phi0ddot, hpotential0, hgradient0, hkinetic0, rho, 
+(H, Hdot, addot, phi0ddot, hpotential0, hgradient0, hkinetic0, psi2pt, rho, 
     deltarho2, hubble_violation, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
 
 # check that Mathematica notebook gives same output
@@ -328,77 +327,18 @@ plt.ylabel('$ C_{k} $')
 
 pdf_pages.savefig(fig6)
 
-# # plot 
-# fig7 = plt.figure(figsize=(14.0,14.0),dpi=100)
-# fig7_xlim = t[-1]
 
-# plt.subplot(2,1,1)
-# for i in range(params.k_modes):
-#     plt.plot(t, (3*H - script_M(i)))
-# plt.xlabel(' t ')
-# plt.ylabel('$\\sigma_{k}$')
-# plt.xlim((0.0,50.0*np.sqrt(1e-6/lamda)))
-# #plt.ylim((-fig7_ylim, fig7_ylim))
+#RMS value of the metric perturbations in position space analogous to 2pt for phi
+fig7 = plt.figure(figsize=(14.0,14.0),dpi=100)
+fig7_xlim = t[-1]
 
-# plt.subplot(2,1,2)
-# for i in range(params.k_modes):
-#     plt.plot(t, (3*H - script_M(i)))
-# plt.axvline(tinf_end, linestyle='--', color='black')
-# plt.xlabel(' t ')
-# plt.ylabel('$\\sigma_{k}$')
-# plt.xlim((0.0,fig7_xlim))
-# #plt.ylim((-fig7_ylim, fig7_ylim))
+plt.subplot(2,1,1)
+plt.plot ()
+plt.xlabel(' t ')
+plt.ylabel('$\sqrt{\langle (\Psi)^2 \\rangle}$')
+plt.subplot(2,1,2)
 
-# pdf_pages.savefig(fig7)
+pdf_pages.savefig(fig7)
 
-
-# fig8 = plt.figure(figsize=(14.0,14.0),dpi=100)
-# fig8_xlim = t[-1]
-
-# plt.subplot(2,1,1)
-# for i in range(params.k_modes):
-#     plt.plot(t, (3*H - script_M(i)))
-# plt.xlabel(' t ')
-# plt.ylabel('$\\sigma_{k}$')
-# plt.xlim((0.0,50.0*np.sqrt(1e-6/lamda)))
-# #plt.ylim((-fig8_ylim, fig8_ylim))
-
-# plt.subplot(2,1,2)
-# for i in range(params.k_modes):
-#     plt.plot(t, (3*H - script_M(i)))
-# plt.axvline(tinf_end, linestyle='--', color='black')
-# plt.xlabel(' t ')
-# plt.ylabel('$\\sigma_{k}$')
-# plt.xlim((0.0,fig8_xlim))
-# #plt.ylim((-fig8_ylim, fig8_ylim))
-
-# pdf_pages.savefig(fig8)
-
-
-# fig9 = plt.figure(figsize=(14.0,14.0),dpi=100)
-# fig9_xlim = t[-1]
-
-# plt.subplot(2,1,1)
-# for i in range(params.k_modes):
-#     plt.plot(t, (Hdot + (((params.k_grids[0][i])*(params.k_grids[0][i]))/(a*a))))
-# plt.xlabel(' t ')
-# plt.ylabel('$\\dot{H}+\\frac{k_{2}}{a_{2}}$')
-# # plt.xlim((25.0,45.0))
-# plt.xlim((0.0,50.0*np.sqrt(1e-6/lamda)))
-# # plt.ylim((-0.0005, 0.0005))
-# #plt.ylim((-fig9_ylim, fig9_ylim))
-
-# plt.subplot(2,1,2)
-# for i in range(params.k_modes):
-#     plt.plot(t, (Hdot + (((params.k_grids[0][i])*(params.k_grids[0][i]))/(a*a))))
-# plt.axvline(tinf_end, linestyle='--', color='black')
-# plt.xlabel(' t ')
-# plt.ylabel('$\\dot{H}+\\frac{k_{2}}{a_{2}}$')
-# # plt.xlim((25.0,45.0))
-# plt.xlim((0.0,fig9_xlim))
-# # plt.ylim((-0.0005, 0.0005))
-# #plt.ylim((-fig9_ylim, fig9_ylim))
-
-# pdf_pages.savefig(fig9)
 
 pdf_pages.close()
