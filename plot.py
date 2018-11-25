@@ -6,7 +6,7 @@ import argparse
 import evolver.eoms
 from run import params
 from evolver.initialize import unpack, make_initial_data, Parameters
-from math import exp
+from math import exp, pi
 from matplotlib.backends.backend_pdf import PdfPages
 from evolver.analysis import analyze
 from evolver.eoms import N_efolds
@@ -120,10 +120,11 @@ ax.text(0.05,0.70, '$\\phi_{0}$='+str(phi0[0]))
 ax.text(0.05,0.65, '$\\dot{\\phi}_{0}$='+str(phi0dot[0]))
 ax.text(0.05,0.60, '$a_{0}$='+str(a[0]))
 ax.text(0.05,0.55, '$H_{0}$='+str(round(H[0],6)))
-ax.text(0.05,0.50, '$\\frac{H_{0}^{2}}{4\\pi^{2}}$='+str(round(H[0]*H[0]/(2*2*np.pi*np.pi),6)))
-ax.text(0.05,0.45, '$ratio$='+str(round(hpotential0[0] / (H[0]*H[0]/(2*2*np.pi*np.pi)),2)))
-ax.text(0.05, 0.40, '$N_{e-folds}$='+str(round(N_efolds(a[-1]),2)))
-ax.text(0.05, 0.35, '$n_{max}$='+str(round(params.k_modes,1)))
+ax.text(0.05,0.48, '$\\frac{H_{0}^{2}}{4\\pi^{2}}$='+str(round((params.kappa**2/4/pi**2),6)))
+ax.text(0.05,0.41, '$\langle (\delta\phi)^2 \\rangle$='+str(round(hpotential0[0],6)))
+ax.text(0.05,0.34, '$\\frac{\\frac{H_{0}^{2}}{4\\pi^{2}}}{\langle (\delta\phi)^2 \\rangle}$='+str(round(hpotential0[0] / (params.kappa**2/4/pi**2),6)))
+ax.text(0.05, 0.26, '$N_{e-folds}$='+str(round(N_efolds(a[-1]),2)))
+ax.text(0.05, 0.20, '$n_{max}$='+str(round(params.k_modes,1)))
 
 # for i in range(params.k_modes):
 # 	ax.text(0.05, 0.30 - 0.05*i, '$\\delta\\phi$' + '$k$' + str(i+1) +
