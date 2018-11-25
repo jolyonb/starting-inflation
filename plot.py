@@ -328,17 +328,17 @@ plt.ylabel('$ C_{k} $')
 pdf_pages.savefig(fig6)
 
 
-#RMS value of the metric perturbations in position space analogous to 2pt for phi
-fig7 = plt.figure(figsize=(14.0,14.0),dpi=100)
-fig7_xlim = t[-1]
+# #RMS value of the metric perturbations in position space analogous to 2pt for phi
+# fig7 = plt.figure(figsize=(14.0,14.0),dpi=100)
+# fig7_xlim = t[-1]
 
-plt.subplot(2,1,1)
-plt.plot ()
-plt.xlabel(' t ')
-plt.ylabel('$\sqrt{\langle (\Psi)^2 \\rangle}$')
-plt.subplot(2,1,2)
+# plt.subplot(2,1,1)
+# plt.plot ()
+# plt.xlabel(' t ')
+# plt.ylabel('$\sqrt{\langle (\Psi)^2 \\rangle}$')
+# plt.subplot(2,1,2)
 
-pdf_pages.savefig(fig7)
+# pdf_pages.savefig(fig7)
 
 
 pdf_pages.close()
