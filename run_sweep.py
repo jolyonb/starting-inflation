@@ -14,7 +14,7 @@ from evolver.model import LambdaPhi4
 
 # Initialize all settings
 debug = False
-hartree = True
+hartree = False
 k_modes = 40
 l1modeson = True
 filename = "data/output"
@@ -23,10 +23,10 @@ filename = "data/output"
 infmodel = LambdaPhi4(lamda=1e-9)
 
 # Background fields
-phi0 = np.linspace(25, 30, 3)
+phi0 = np.linspace(20, 40, 10)
 # Minimum phi0dot should be around -0.025, max should be around 0.025
 # phi0dot = np.linspace(-0.025, 0.025, 3)
-phi0dot = np.linspace(-0.01, 0.01, 3)
+phi0dot = np.linspace(-0.01, 0.01, 10)
 
 # Specify timing information
 start_time = 0
