@@ -67,14 +67,8 @@ def make_plot(xvals, ylistvals, plottype, numsteps):
 t = results[0]
 a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpack(results[1:], params.total_wavenumbers)
 
-(H, Hdot, addot, phi0ddot, hpotential0, hgradient0, hkinetic0, rho, 
+(H, Hdot, addot, phi0ddot, hpotential0, hgradient0, hkinetic0, psi2pt, rho, 
     deltarho2, hubble_violation, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
-
-# check that Mathematica notebook gives same output
-# print ("twopointBD:", hpotential0[0])
-# print ("deltarho2:", deltarho2[0])
-# print ("deltarho2_potential:", (hpotential0[0]*Vdd[0]/2))
-# print ("deltarho2_kinetic:", (hkinetic0[0]/2))
 
 phi = [None] * params.k_modes
 phidot = [None] * params.k_modes
@@ -120,26 +114,12 @@ ax.text(0.05,0.70, '$\\phi_{0}$='+str(phi0[0]))
 ax.text(0.05,0.65, '$\\dot{\\phi}_{0}$='+str(phi0dot[0]))
 ax.text(0.05,0.60, '$a_{0}$='+str(a[0]))
 ax.text(0.05,0.55, '$H_{0}$='+str(round(H[0],6)))
-ax.text(0.05,0.48, '$\\frac{H_{0}^{2}}{4\\pi^{2}}$='+str(round((params.kappa**2/4/pi**2),6)))
+ax.text(0.05,0.48, '$\\frac{\kappa^{2}}{4\\pi^{2}}$='+str(round((params.kappa**2/4/pi**2),6)))
 ax.text(0.05,0.41, '$\langle (\delta\phi)^2 \\rangle$='+str(round(hpotential0[0],6)))
-ax.text(0.05,0.34, '$\\frac{\\frac{H_{0}^{2}}{4\\pi^{2}}}{\langle (\delta\phi)^2 \\rangle}$='+str(round(hpotential0[0] / (params.kappa**2/4/pi**2),6)))
-ax.text(0.05, 0.26, '$N_{e-folds}$='+str(round(N_efolds(a[-1]),2)))
-ax.text(0.05, 0.20, '$n_{max}$='+str(round(params.k_modes,1)))
-
-# for i in range(params.k_modes):
-# 	ax.text(0.05, 0.30 - 0.05*i, '$\\delta\\phi$' + '$k$' + str(i+1) +
-# 	'=' + str(round(np.real(phi[i][0]),4)) + "$+$" + str(round(np.imag(phi[i][0]),4))+ "$j$")
-
-# for i in range(params.k_modes):
-# 	ax.text(0.37, 0.90, '$l=0 \\ modes$')
-# 	ax.text(0.37, 0.85 - 0.05*i, '$k$'+ str(i+1) + '$=$' + str(round(params.k_grids[0][i],5)))
-
-# for i in range(params.k_modes):
-# 	ax.text(0.37, 0.30 - 0.05*i, '$\\psi$k'+ str(i+1) +'=' + str(round(np.real(psi[i][0]),4)) + "$+$" + str(round(np.imag(psi[i][0]),4))+"$j$")
-
-# for i in range(params.k_modes-1):
-# 	ax.text(0.70,0.90, '$l=1 \\ modes$')
-# 	ax.text(0.70, 0.85 - 0.05*i, '$k$'+ str(i+1) + '$=$' + str(round(params.k_grids[1][i],5)))
+ax.text(0.05,0.34, '$\langle (\delta\psi)^2 \\rangle$='+str(round(psi2pt[0],6)))
+ax.text(0.05,0.26, '$\\frac{\langle (\delta\phi)^2 \\rangle}{\\frac{\kappa^{2}}{4\\pi^{2}}}=$'+str(round(hpotential0[0] / (params.kappa**2/4/pi**2),6)))
+ax.text(0.05, 0.20, '$N_{e-folds}$='+str(round(N_efolds(a[-1]),2)))
+ax.text(0.05, 0.14, '$n_{max}$='+str(round(params.k_modes,1)))
 
 ax.set_xticklabels([])
 ax.set_yticklabels([])
