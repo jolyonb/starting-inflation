@@ -278,6 +278,26 @@ def compute_hartree(phiA, phidotA, phiB, phidotB, params):
     # Return results
     return (phi2pt, phi2ptdt, phi2ptgrad)
 
+def compute_hartree_psi(psiA, psiB, params):
+    """
+    Based on phi and phidot, construct the Hartree corrections.
+
+    Arguments:
+        * psiA, psiB: The field values including coefficients, split
+                                        into lists by l values
+        * params: Parameters class
+
+    Returns: psi2pt
+    """
+    # Compute the fields, with associated coefficients
+    fullpsi0, fullpsi1 = construct_full_modes(psiA, psiB, params)
+
+    # Compute the 2-point functions
+    psi2pt = compute_2pt(fullpsi0, params)
+
+    # Return results
+    return psi2pt
+
 def compute_2ptdt(fullphidot0, params):
     """
     Computes the two point function <(\delta \dot{\hat{\phi}})^2>
