@@ -278,13 +278,13 @@ def compute_hartree(phiA, phidotA, phiB, phidotB, params):
     # Return results
     return (phi2pt, phi2ptdt, phi2ptgrad)
 
-def compute_hartree_psi(psiA, psiB, params):
+def compute_2ptpsi(psiA, psiB, params):
     """
-    Based on phi and phidot, construct the Hartree corrections.
+    Based on psi and psidot, construct the two points function for psi.
 
     Arguments:
         * psiA, psiB: The field values including coefficients, split
-                                        into lists by l values
+                      into lists by l values
         * params: Parameters class
 
     Returns: psi2pt
