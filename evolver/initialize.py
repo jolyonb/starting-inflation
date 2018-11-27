@@ -9,9 +9,7 @@ import numpy as np
 from scipy.special import spherical_jn
 from evolver.besselroots import get_jn_roots
 from evolver.integrator import AbstractModel, AbstractParameters
-from evolver.eoms import (eoms, compute_hubble, compute_initial_psi, compute_hartree,
-                          compute_hubbledot, compute_phi0ddot, compute_rho, compute_deltarho2,
-                          compute_hubble_constraint_viol, slow_roll_epsilon)
+from evolver.eoms import (eoms, compute_hubble, compute_initial_psi, compute_hartree,                      compute_hartree_psi, compute_hubbledot, compute_phi0ddot, compute_rho,                      compute_deltarho2,compute_hubble_constraint_viol, slow_roll_epsilon,                      compute_2pt)
 
 class Parameters(AbstractParameters):
     """
@@ -104,6 +102,7 @@ class Parameters(AbstractParameters):
                                                        phiB, phidotB,
                                                        self)
 
+
         rho = compute_rho(phi0, phi0dot, self.model)
         deltarho2 = compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, self.model)
 
@@ -181,6 +180,9 @@ class Model(AbstractModel):
                                                        phiB, phidotB,
                                                        self.parameters)
 
+        # compute 2pt function of Psi using compute_2pt
+        psi2pt = compute_hartree_psi(psiA, psiB, self.parameters)
+
         model = self.parameters.model
         rho = compute_rho(phi0, phi0dot, model)
 
@@ -207,7 +209,7 @@ class Model(AbstractModel):
         Vddd = model.dddpotential(phi0)
         Vdddd = model.ddddpotential(phi0)
 
-        extradata = [H, Hdot, addot, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad,
+        extradata = [H, Hdot, addot, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad, psi2pt,
                      rho, deltarho2, hubble_violation, V, Vd, Vdd, Vddd, Vdddd]
 
         sep = self.separator
