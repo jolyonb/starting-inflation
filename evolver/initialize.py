@@ -10,9 +10,9 @@ from scipy.special import spherical_jn
 from evolver.besselroots import get_jn_roots
 from evolver.integrator import AbstractModel, AbstractParameters
 from evolver.eoms import (eoms, compute_hubble, compute_initial_psi, compute_hartree,
-                          compute_hartree_psi, compute_hubbledot, compute_phi0ddot, 
-                          compute_rho, compute_deltarho2, compute_hubble_constraint_viol, 
-                          slow_roll_epsilon, compute_2pt)
+                          compute_2ptpsi, compute_hubbledot, compute_phi0ddot,
+                          compute_rho, compute_deltarho2, compute_hubble_constraint_viol,
+                          slow_roll_epsilon)
 
 class Parameters(AbstractParameters):
     """
@@ -105,7 +105,6 @@ class Parameters(AbstractParameters):
                                                        phiB, phidotB,
                                                        self)
 
-
         rho = compute_rho(phi0, phi0dot, self.model)
         deltarho2 = compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, self.model)
 
@@ -183,8 +182,8 @@ class Model(AbstractModel):
                                                        phiB, phidotB,
                                                        self.parameters)
 
-        # compute 2pt function of Psi using compute_2pt
-        psi2pt = compute_hartree_psi(psiA, psiB, self.parameters)
+        # compute 2pt function of Psi
+        psi2pt = compute_2ptpsi(psiA, psiB, self.parameters)
 
         model = self.parameters.model
         rho = compute_rho(phi0, phi0dot, model)
@@ -200,11 +199,6 @@ class Model(AbstractModel):
 
         addot = a*(Hdot + H*H)
         hubble_violation = compute_hubble_constraint_viol(a, adot, rho, deltarho2)
-        # psi_violation = compute_psi_constraint_viol(a, adot, phi0, phi0dot,
-        #                                             phiA, phidotA, phiB, phidotB,
-        #                                             psiA, psiB,
-        #                                             phi2pt, phi2ptdt, phi2ptgrad,
-        #                                             self.parameters)
 
         V = model.potential(phi0)
         Vd = model.dpotential(phi0)
