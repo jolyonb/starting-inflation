@@ -139,12 +139,6 @@ class Model(AbstractModel):
         unpacked_data = unpack(data, self.parameters.total_wavenumbers)
         a, adot, _, phi0dot, _, phidotA, _, _, phidotB, _ = unpacked_data
 
-        # Sanity checks
-        if adot < 0:
-            # We've overshot, likely due to error tolerances being too large
-            self.parameters.halt = True
-            self.parameters.haltmsg = "H became negative due to error tolerances being too large"
-
         # Use the equations of motion
         addot, phi0ddot, phiddotA, psidotA, phiddotB, psidotB = eoms(unpacked_data,
                                                                      self.parameters,
@@ -159,9 +153,9 @@ class Model(AbstractModel):
             self.parameters.haltmsg = "Inflation has ended"
 
         # Combine everything into a single array
-        return pack(adot, addot, phi0dot, phi0ddot,
-                    phidotA, phiddotA, psidotA,
-                    phidotB, phiddotB, psidotB)
+        return eqpack(adot, addot, phi0dot, phi0ddot,
+                      phidotA, phiddotA, psidotA,
+                      phidotB, phiddotB, psidotB)
 
     def solout(self, t, data):
         if self.parameters.halt:
@@ -327,9 +321,29 @@ def pack(a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB):
 
     Returns:
         * data: A numpy array containing all data
+    Note that adot is stored as a logarithm
     """
-    background = np.array([a, adot, phi0, phi0dot])
+    background = np.array([a, np.log(adot), phi0, phi0dot])
     return np.concatenate((background, phiA, phidotA, psiA, phiB, phidotB, psiB))
+
+def eqpack(adot, addot, phi0dot, phi0ddot,
+           phidotA, phiddotA, psidotA,
+           phidotB, phiddotB, psidotB):
+    """
+    Pack all field values into a data array for integration.
+
+    Arguments:
+        * adot, addot, phi0dot, phi0ddot: Respective values to pack
+        * phidotA, phiddotA, psidotA,
+          phidotB, phiddotB, psidotB: Arrays of values for each wavenumber
+
+    Returns:
+        * data: A numpy array containing all data
+    Note that adot is stored as d(ln(adot))dt = addot/adot
+    """
+    background = np.array([adot, addot/adot, phi0dot, phi0ddot])
+    return np.concatenate((background, phidotA, phiddotA, psidotA,
+                           phidotB, phiddotB, psidotB))
 
 def unpack(data, total_wavenumbers):
     """
@@ -346,7 +360,7 @@ def unpack(data, total_wavenumbers):
     """
     # Grab a, adot, phi0 and phi0dot
     a = data[0]
-    adot = data[1]
+    adot = np.exp(data[1])  # Note this needs to be exponentiated
     phi0 = data[2]
     phi0dot = data[3]
 
