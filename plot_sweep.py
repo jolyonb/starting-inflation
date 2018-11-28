@@ -3,45 +3,37 @@
 """
 Plots the results from a parameter sweep
 """
-from evolver.analysis import load_data, analyze
-
-import swp_cls
-
-from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-
-from evolver.eoms import slow_roll_epsilon
+from matplotlib.backends.backend_pdf import PdfPages
+from evolver.analysis import load_data, analyze
 
 def phase_plotter(phis, phidots, cs, infls, cname):
-    sc = plt.scatter(phis, phidots, s=10.0+infls*50.0, c=cs, cmap=cm.YlOrRd, marker='o', linewidth=0.0)
-    plt.xlabel('$\phi $')
-    plt.ylabel('$\dot{ \phi } $')
-    cbr=plt.colorbar(sc)
-    cbr.set_label(cname,rotation=270,fontsize=8)
+    fig = plt.figure(figsize=(7.0, 7.0), dpi=100)
+    sc = plt.scatter(phis, phidots, s=10.0+infls*50.0, c=cs,
+                     cmap=cm.YlOrRd, marker='o', linewidth=0.0)
+    plt.xlabel(r'$\phi$')
+    plt.ylabel(r'$\dot{\phi}$')
+    cbr = plt.colorbar(sc)
+    cbr.set_label(cname, rotation=270, fontsize=8)
+    return fig
 
-
-
-
-#output file for the sweep plots:
-filename_swp = "output_swp.dat"
+# Output file for the sweep plots:
 sweep_plt = "sweep_hOff.pdf"
 
-#specify the critical number of efolds above/below which we determine sufficient/insufficient inflation
-Nef_crit = 60.0
-
-#initialize the class which will hold all of the parameters and solutions of each run (each value in runs will be updated as we loop through phase space)
-runs = swp_cls.runs([], [], [], [], [], [], [], [], [])
-
-# Give it the info file to read from
+# The info file to read from
 filename = "data/output-info.txt"
+
+# Specify the critical number of efolds above/below which we determine
+# sufficient/insufficient inflation
+Nef_crit = 60.0
 
 # Suck up the data
 with open(filename) as f:
     lines = f.readlines()
 
-# Process it into nice lines
+# Find all of the runs to read from
 data = []
 for line in lines[1:]:
     if line:
@@ -50,72 +42,64 @@ for line in lines[1:]:
         phi0dot = float(phi0dot)
         data.append((fn, phi0, phi0dot))
 
-
 # Read the data files for each run in the sweep
+plot_data = {
+  "phi0": [],
+  "phi0dot": [],
+  "H": [],
+  "rho": [],
+  "deltarho2": [],
+  "phi2pt": [],
+  "efolds": [],
+  "infl": []
+}
 for file, phi0, phi0dot in data:
     results = load_data(file)
     details = analyze(results["a"], results["adot"], results["addot"])
-    #print(details["efolds"])
-    #store in runs
-    #
-    runs.a.append(results["a"][0])
-    runs.phi.append(results["phi0"][0])
-    runs.phidot.append(results["phi0dot"][0])
-    #
-    runs.H.append(results["H"][0])
-    runs.rho.append(results["rho"][0])
-    runs.drho2.append(results["deltarho2"][0])
-    runs.hpotential.append(results["phi2pt"][0])
-    #
+
+    # Store all of the data we wish to plot
+    plot_data["phi0"].append(results["phi0"][0])
+    plot_data["phi0dot"].append(results["phi0dot"][0])
+    plot_data["H"].append(results["H"][0])
+    plot_data["rho"].append(results["rho"][0])
+    plot_data["deltarho2"].append(results["deltarho2"][0])
+    plot_data["phi2pt"].append(results["phi2pt"][0])
     if "efolds" in details:
-        runs.Nef.append(details["efolds"])
+        plot_data["efolds"].append(results["phi0"][0])
     else:
-        details["efolds"] = 0.0
-        runs.Nef.append(details["efolds"])
-    #
-    if details["efolds"] >= Nef_crit:
-        runs.infl.append(1)
+        plot_data["efolds"].append(0.0)
+    # Did sufficient inflation occur?
+    if plot_data["efolds"] >= Nef_crit:
+        plot_data["infl"].append(1)
     else:
-        runs.infl.append(0)
+        plot_data["infl"].append(0)
 
-    #epsilon = slow_roll_epsilon(results["a"], results["adot"], results["addot"])
-    #plt.plot(results["t"], epsilon, 'b-')
-    #plt.show()
+# Convert plot data to numpy arrays
+for key in plot_data:
+    plot_data[key] = np.array(plot_data[key])
 
-
-
-#write data to file
-sep = ", "
-fout = open(filename_swp, "w")
-for i in range(0,len(runs.phi)):
-    fout.write(str(runs.a[i]) + sep + str(runs.phi[i]) + sep + str(runs.phidot[i]) + sep + str(runs.H[i]) + sep + str(runs.rho[i]) + sep + str(runs.drho2[i]) + sep + str(runs.hpotential[i]) + sep + str(runs.Nef[i]) + sep + str(runs.infl[i]) + "\n")
-fout.close()
-
-
-
-#make plots in pdf file
-#####
+# Create PDF plots
 pdf_pages = PdfPages(sweep_plt)
 #
-fig = plt.figure(figsize=(7.0,7.0),dpi=100)
-phase_plotter(np.asarray(runs.phi), np.asarray(runs.phidot), np.asarray(runs.Nef), np.asarray(runs.infl), '$N_{ef}$')
+fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
+                    plot_data["efolds"],
+                    plot_data["infl"], '$N_{ef}$')
 pdf_pages.savefig(fig)
 #
-fig = plt.figure(figsize=(7.0,7.0),dpi=100)
-phase_plotter(np.asarray(runs.phi), np.asarray(runs.phidot), np.asarray(runs.rho)+np.asarray(runs.drho2), np.asarray(runs.infl), '$\\rho$ + $\delta \\rho^{2}$')
+fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
+                    plot_data["rho"] + plot_data["deltarho2"],
+                    plot_data["infl"], r'$\rho + \delta \rho^{2}$')
 pdf_pages.savefig(fig)
 #
-fig = plt.figure(figsize=(7.0,7.0),dpi=100)
-phase_plotter(np.asarray(runs.phi), np.asarray(runs.phidot), np.asarray(runs.drho2)/np.asarray(runs.rho), np.asarray(runs.infl), '$\delta \\rho^{2}$/$\\rho$')
+fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
+                    plot_data["deltarho2"] / plot_data["rho"],
+                    plot_data["infl"], r'$\delta \rho^{2} / \rho$')
 pdf_pages.savefig(fig)
 #
-fig = plt.figure(figsize=(7.0,7.0),dpi=100)
-phase_plotter(np.asarray(runs.phi), np.asarray(runs.phidot), np.asarray(runs.hpotential)/(np.asarray(runs.H)*np.asarray(runs.H)/(2*2*np.pi*np.pi)), np.asarray(runs.infl), '$<(\\delta\\phi)^{2}>_{t_{0}} / \\frac{H_{0}^{2}}{4\\pi^{2}} $')
+fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
+                    plot_data["phi2pt"]/(plot_data["H"]/(2*np.pi))**2,
+                    plot_data["infl"],
+                    r'$<(\delta\phi)^{2}>_{t_{0}}/\frac{H_{0}^{2}}{4\pi^{2}}$')
 pdf_pages.savefig(fig)
 #
 pdf_pages.close()
-
-
-
-
-
