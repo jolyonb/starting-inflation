@@ -22,12 +22,12 @@ infmodel = LambdaPhi4(lamda=1e-9)
 
 # Background fields
 phi0 = 25.0
-phi0dot = -0.02
+phi0dot = 0.01
 
 # Specify timing information
 start_time = 0
-end_time = 5000*sqrt(1e-6/infmodel.lamda)
-timestep = 0.5*sqrt(1e-6/infmodel.lamda)
+end_time = 5000 * sqrt(1e-6/infmodel.lamda)
+timestep = 0.05 * sqrt(1e-6/infmodel.lamda)
 
 # Construct parameters class and initial data
 params, initial_data = make_initial_data(phi0, phi0dot, k_modes, hartree, infmodel,
