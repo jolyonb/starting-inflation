@@ -33,7 +33,7 @@ timestepinfo = [0.1, 0.1, 20]
 params, initial_data = make_initial_data(phi0, phi0dot, k_modes, hartree, infmodel,
                                          filename, l1modeson=l1modeson)
 
-# Perform the run #
+# Perform the run
 if __name__ == "__main__":
     # Do we run?
     if not performrun:
