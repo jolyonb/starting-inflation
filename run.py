@@ -27,7 +27,7 @@ phi0dot = 0.01
 # Specify timing information
 start_time = 0
 end_time = 5000 * sqrt(1e-6/infmodel.lamda)
-timestep = 0.05 * sqrt(1e-6/infmodel.lamda)
+timestepinfo = [0.1, 0.1, 20]
 
 # Construct parameters class and initial data
 params, initial_data = make_initial_data(phi0, phi0dot, k_modes, hartree, infmodel,
@@ -40,7 +40,7 @@ if __name__ == "__main__":
         end_time = 0
 
     # Construct the driver
-    driver = Driver(Model, initial_data, params, start_time, end_time, timestep, debug=debug)
+    driver = Driver(Model, initial_data, params, start_time, end_time, timestepinfo, debug=debug)
 
     # Perform the evolution
     print("Beginning evolution")

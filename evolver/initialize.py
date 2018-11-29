@@ -206,6 +206,10 @@ class Model(AbstractModel):
         sep = self.separator
         self.parameters.f2.write(str(self.time) + sep + sep.join(map(str, extradata)) + "\n")
 
+    def compute_timestep(self):
+        """Computes the time step at this point in the evolution"""
+        return 1.0 * np.sqrt(1e-6/self.parameters.model.lamda)
+
 def make_initial_data(phi0, phi0dot, k_modes, hartree, model,
                       filename, Rmaxfactor=2, kappafactor=20, l1modeson=True):
     """
@@ -229,7 +233,7 @@ def make_initial_data(phi0, phi0dot, k_modes, hartree, model,
 
     The data in initial_data is stored as:
     [a, adot, phi0, phi0dot, phi^A, phidot^A, psi^A, phi^B, phidot^B, psi^B]
-    where the last six  entries are vectors with 2n-1 entries, where n is the number of
+    where the last six entries are vectors with 2n-1 entries, where n is the number of
     ell = 0 entries. Note that A modes begin with unit position, and B modes begin with
     unit velocity.
     """
