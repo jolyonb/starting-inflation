@@ -208,7 +208,7 @@ class Model(AbstractModel):
 
     def compute_timestep(self):
         """Computes the time step at this point in the evolution"""
-        min_step, factor, max_step = self.timestepinfo
+        factor1, factor2 = self.timestepinfo
         # We want to take factor timesteps in each e-fold, roughly
         # Delta t = Delta a / adot
         # Change in a we want to see is 1 efold / factor
@@ -216,11 +216,24 @@ class Model(AbstractModel):
         # Delta a = (e-1) * a / factor
         a = self.data[0]
         adot = np.exp(self.data[1])
+        H = adot / a
+
+        # Get the shortest wavelength
+        lamda = 2*np.pi/self.parameters.k_grids[0][-1]
+        # Inflate it
+        lamda *= a
+        # Get the horizon scale
+        horizon = 1/H
+        # Are we inside or outside the horizon?
+        inside = False if lamda > 10 * horizon else True
+        if inside:
+            factor = factor1
+        else:
+            factor = factor2
+
+        # Compute the timestep
         timestep = 1.71828 * a / factor / adot
-        if timestep < min_step:
-            timestep = min_step
-        if timestep > max_step:
-            timestep = max_step
+        print(timestep, 1.0 * np.sqrt(1e-6/self.parameters.model.lamda))
         return timestep
         # Old code:
         # return 1.0 * np.sqrt(1e-6/self.parameters.model.lamda)

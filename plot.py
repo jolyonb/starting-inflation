@@ -14,6 +14,7 @@ plt.rcParams["font.family"] = "serif"
 # Deal with command line arguments
 parser = argparse.ArgumentParser(description="Plot data from a run")
 parser.add_argument("filename", help="Base of the filename to read data in from")
+parser.add_argument("outfilename", help="Filename to output to (include .pdf)")
 args = parser.parse_args()
 
 # Read in the data
@@ -125,8 +126,7 @@ def cover_sheet():
 # create pdf output of plots
 ##########################################
 
-strplots = "BD"+'_plots'+'.pdf'
-pdf_pages = PdfPages(strplots)
+pdf_pages = PdfPages(args.outfilename)
 
 # print initial conditions
 fig0 = plt.figure(figsize=(8.0, 8.0), dpi=70)
