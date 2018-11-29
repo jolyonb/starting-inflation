@@ -206,6 +206,25 @@ class Model(AbstractModel):
         sep = self.separator
         self.parameters.f2.write(str(self.time) + sep + sep.join(map(str, extradata)) + "\n")
 
+    def compute_timestep(self):
+        """Computes the time step at this point in the evolution"""
+        min_step, factor, max_step = self.timestepinfo
+        # We want to take factor timesteps in each e-fold, roughly
+        # Delta t = Delta a / adot
+        # Change in a we want to see is 1 efold / factor
+        # 1 efold = e * a
+        # Delta a = (e-1) * a / factor
+        a = self.data[0]
+        adot = np.exp(self.data[1])
+        timestep = 1.71828 * a / factor / adot
+        if timestep < min_step:
+            timestep = min_step
+        if timestep > max_step:
+            timestep = max_step
+        return timestep
+        # Old code:
+        # return 1.0 * np.sqrt(1e-6/self.parameters.model.lamda)
+
 def make_initial_data(phi0, phi0dot, k_modes, hartree, model,
                       filename, Rmaxfactor=2, kappafactor=20, l1modeson=True):
     """
@@ -229,7 +248,7 @@ def make_initial_data(phi0, phi0dot, k_modes, hartree, model,
 
     The data in initial_data is stored as:
     [a, adot, phi0, phi0dot, phi^A, phidot^A, psi^A, phi^B, phidot^B, psi^B]
-    where the last six  entries are vectors with 2n-1 entries, where n is the number of
+    where the last six entries are vectors with 2n-1 entries, where n is the number of
     ell = 0 entries. Note that A modes begin with unit position, and B modes begin with
     unit velocity.
     """

@@ -24,7 +24,7 @@ class Status(Enum):
 class AbstractModel(object):
     """Abstract class that handles integration"""
 
-    def __init__(self, initial_data, parameters, start_time,
+    def __init__(self, initial_data, parameters, start_time, timestepinfo,
                  atol=1e-10, rtol=1e-10, separator=", ", debug=False):
         """
         Initialize the integrator
@@ -34,6 +34,7 @@ class AbstractModel(object):
             * parameters: Any parameters that the derivatives computation should have
                           access to
             * start_time: The initial value for time t
+            * timestepinfo: Any information that compute_timestep needs to compute the time step
             * atol: Absolute tolerance in integration
             * rtol: Relative tolerance in integration
             * separator: Separator to use between fields when outputting data
@@ -46,6 +47,7 @@ class AbstractModel(object):
         self.parameters = parameters
         self.separator = separator
         self.debug = debug
+        self.timestepinfo = timestepinfo
 
         # Set up the integrator
         self.integrator = ode(self.derivatives).set_integrator('dopri5',
@@ -141,6 +143,10 @@ class AbstractModel(object):
         """
         raise NotImplementedError()
 
+    def compute_timestep(self):
+        """Compute the desired timestep at this point in the evolution"""
+        raise NotImplementedError()
+
 
 class AbstractParameters(object):
     """Abstract class that handles file stuff"""
@@ -183,7 +189,7 @@ class Driver(object):
     Sets up and runs the evolution
     """
 
-    def __init__(self, Model, initial_data, parameters, start_time, end_time, timestep,
+    def __init__(self, Model, initial_data, parameters, start_time, end_time, timestepinfo,
                  atol=1e-10, rtol=1e-10, separator=", ", debug=False):
         """
         Set parameters for driving the evolution
@@ -195,7 +201,7 @@ class Driver(object):
                           access to
             * start_time: The initial value for time t
             * end_time: The final value of time to evolve to
-            * timestep: The timestep between which to output data
+            * timestepinfo: Information required by the model for compute_timestep
             * atol: Absolute tolerance in integration
             * rtol: Relative tolerance in integration
             * separator: Separator to use between fields when outputting data
@@ -208,13 +214,13 @@ class Driver(object):
         # Save parameters
         self.start_time = start_time
         self.end_time = end_time
-        self.timestep = timestep
         self.debug = debug
 
         # Initialize the data objects
         self.data = Model(initial_data=initial_data,
                           parameters=parameters,
                           start_time=start_time,
+                          timestepinfo=timestepinfo,
                           atol=atol,
                           rtol=rtol,
                           separator=separator,
@@ -256,11 +262,7 @@ class Driver(object):
                 break
 
             # Construct the time to integrate to
-            # We try to keep the timing roughly the same between runs
-            while newtime <= self.data.time:
-                newtime += self.timestep
-            if newtime > self.end_time:
-                newtime = self.end_time
+            newtime = self.data.time + self.data.compute_timestep()
 
             # Take a step to newtime
             try:
