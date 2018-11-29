@@ -3,38 +3,23 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
-import evolver.eoms
 from run import params
-from evolver.initialize import unpack, make_initial_data, Parameters
-from math import exp, pi
+from evolver.initialize import unpack
+from math import pi
 from matplotlib.backends.backend_pdf import PdfPages
-from evolver.analysis import analyze
 from evolver.eoms import N_efolds
 
 plt.rcParams["font.family"] = "serif"
-#
+
 # Deal with command line arguments
-#
-parser = argparse.ArgumentParser(description="Plot data from a given data file using column 1 on the x axis")
-
-
-def pos_int(value):
-    """Helper function used to select a positive integer"""
-    if not value.isdigit() or int(value) < 1:
-        raise argparse.ArgumentTypeError("must be a positive integer. You supplied: %s" % value)
-    return int(value)
-
-# Which type of plot to make
-parser.add_argument("-l", help="Log plot type (0=None, 1=y, 2=x, 3=both)",
-                    default=0, type=pos_int, dest="logplot")
-
-# Parse the command line
+parser = argparse.ArgumentParser(description="Plot data from a run")
+parser.add_argument("filename", help="Base of the filename to read data in from")
 args = parser.parse_args()
 
 # Read in the data
-with open(params.filename+".dat") as f:
+with open(args.filename + ".dat") as f:
     data = f.readlines()
-with open(params.filename+".dat2") as f:
+with open(args.filename + ".dat2") as f:
     data2 = f.readlines()
 
 # Process the data
@@ -106,7 +91,7 @@ def basic_plot(xvals, yvals, plottype, num_plots, position):
     elif num_plots > 2 and num_plots <= 4:
         columns = 2
     else:
-        print ("too many plots per page, downsize!")
+        print("too many plots per page, downsize!")
 
     plt.subplot(2, columns, position)
     plt.plot(xvals, yvals)
