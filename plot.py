@@ -8,306 +8,322 @@ from evolver.initialize import unpack
 from math import pi
 from matplotlib.backends.backend_pdf import PdfPages
 from evolver.eoms import N_efolds
+from enum import Enum
 
-plt.rcParams["font.family"] = "serif"
-
-# Deal with command line arguments
+####################################
+# Deal with command line arguments #
+####################################
 parser = argparse.ArgumentParser(description="Plot data from a run")
 parser.add_argument("filename", help="Base of the filename to read data in from")
 parser.add_argument("outfilename", help="Filename to output to (include .pdf)")
 args = parser.parse_args()
 
-# Read in the data
+
+#################
+# Load the data #
+#################
+# File 1
 with open(args.filename + ".dat") as f:
     data = f.readlines()
+results = np.array([list(map(float, line.split(", "))) for line in data]).transpose()
+t = results[0]
+(a, adot, phi0, phi0dot, phiA, phidotA,
+ psiA, phiB, phidotB, psiB) = unpack(results[1:], params.total_wavenumbers)
+
+# File 2
 with open(args.filename + ".dat2") as f:
     data2 = f.readlines()
-
-# Process the data
-results = np.array([list(map(float, line.split(", "))) for line in data]).transpose()
 results2 = np.array([list(map(float, line.split(", "))) for line in data2]).transpose()
-
-# Unpack the data
-t = results[0]
-a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpack(results[1:], params.total_wavenumbers)
-
-(H, Hdot, addot, phi0ddot, hpotential0, hgradient0, hkinetic0, psi2pt, rho,
+(H, Hdot, addot, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad, psi2pt, rho,
     deltarho2, hubble_violation, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
 
-phi = [None] * params.k_modes
-phidot = [None] * params.k_modes
-psi = [None] * params.k_modes
+# Construct the perturbative modes
+# \ell = 0
+phi_l0 = [None] * params.k_modes
+phidot_l0 = [None] * params.k_modes
+psi_l0 = [None] * params.k_modes
+for i in range(params.k_modes):
+    phi_l0[i] = params.poscoeffs[0][i] * phiA[i] + params.velcoeffs[0][i] * phiB[i]
+    phidot_l0[i] = params.poscoeffs[0][i] * phidotA[i] + params.velcoeffs[0][i] * phidotB[i]
+    psi_l0[i] = params.poscoeffs[0][i] * psiA[i] + params.velcoeffs[0][i] * psiB[i]
+
+# Just one of the m_\ell modes for \ell = 1
 phi_l1 = [None] * (params.k_modes-1)
 phidot_l1 = [None] * (params.k_modes-1)
 psi_l1 = [None] * (params.k_modes-1)
-
-# Attach coefficients
-for i in range(params.k_modes):
-    params.poscoeffs[0][i]
-    phi[i] = params.poscoeffs[0][i] * phiA[i] + params.velcoeffs[0][i] * phiB[i]
-    phidot[i] = params.poscoeffs[0][i] * phidotA[i] + params.velcoeffs[0][i] * phidotB[i]
-    psi[i] = params.poscoeffs[0][i] * psiA[i] + params.velcoeffs[0][i] * psiB[i]
-
 for i in range(params.k_modes-1):
-    params.poscoeffs[0][i]
     phi_l1[i] = params.poscoeffs[1][0][i] * phiA[i] + params.velcoeffs[1][0][i] * phiB[i]
     phidot_l1[i] = params.poscoeffs[1][0][i] * phidotA[i] + params.velcoeffs[1][0][i] * phidotB[i]
     psi_l1[i] = params.poscoeffs[1][0][i] * psiA[i] + params.velcoeffs[1][0][i] * psiB[i]
 
+# Make a big list of all the perturbative modes
+# deltaphi = phi_l0 + phi_l1
+# deltaphidot = phidot_l0 + phidot_l1
+# psi = psi_l0 + psi_l1
+# num_modes = params.total_wavenumbers
+# k_modes = params.all_wavenumbers
 
-# function to calculate script_M Eq. 1.18 from Dave's "Coupled Equations of Motion"
-def script_M(i):
-    return (Vd + 2*H*phi0dot) / (Hdot + params.k_grids[0][i]*params.k_grids[0][i]/(a*a))
-
-
-def basic_plot(xvals, yvals, plottype, num_plots, position):
-    '''
-    Constructs a basic plot of your quanitity of interest
-
-    Arguments:
-        * xvals: variable plotted as x
-        * yvals: variable plotted as y
-        * plottype: choose how to plot your two variables
-        * position: position of the plot on page (Python plots top to bottom, left to right)
-        * total_plots: total number of plots to appear on this page
-
-    Returns your plot
-    '''
-    if plottype == 0:
-        yvals = yvals
-    elif plottype == 1:
-        xvals = np.log(xvals)
-    elif plottype == 2:
-        yvals = np.log(yvals)
-    elif plottype == 3:
-        xvals = np.log(xvals)
-        yvals = np.log(yvals)
-    else:
-        print("your request is not a valid plot format, please try again")
-
-    if num_plots == 1:
-        columns = 1
-    elif num_plots == 2:
-        columns = 1
-    elif num_plots > 2 and num_plots <= 4:
-        columns = 2
-    else:
-        print("too many plots per page, downsize!")
-
-    plt.subplot(2, columns, position)
-    plt.plot(xvals, yvals)
-    # xlabel = str(xvals)
-    # plt.xlabel(xlabel)
-
-    return
-
-def cover_sheet():
-    ax = fig0.add_subplot(111)
-    ax.text(0.05, 0.95, '$K$=0.0')
-    ax.text(0.05, 0.90, '$\\delta \\rho^{(2)}_{0}/\\rho_{0}$='+str(round(deltarho2[0]/rho[0],3)))
-    ax.text(0.05, 0.85, '$R_{max} (H_{0}^{-1})$='+str(round(params.Rmax, 1)))
-    ax.text(0.05, 0.80, '$\\lambda$=' + str(params.model.lamda))
-    ax.text(0.05, 0.75, '$\\kappa  (H_{0})$='+str(round(params.kappa/H[0],1)))
-    ax.text(0.05, 0.70, '$\\phi_{0}$='+str(phi0[0]))
-    ax.text(0.05, 0.65, '$\\dot{\\phi}_{0}$='+str(phi0dot[0]))
-    ax.text(0.05, 0.60, '$a_{0}$='+str(a[0]))
-    ax.text(0.05, 0.55, '$H_{0}$='+str(round(H[0],6)))
-    ax.text(0.05, 0.50, '$\\frac{\kappa^{2}}{4\\pi^{2}}$='+str(round((params.kappa**2/4/pi**2),6)))
-    ax.text(0.05, 0.45, '$\langle (\delta\phi)^2 \\rangle$='+str(round(hpotential0[0], 6)))
-    ax.text(0.05, 0.40, '$\langle (\delta\psi)^2 \\rangle$='+str(round(psi2pt[0],6)))
-    ax.text(0.05, 0.35, '$\\frac{\langle (\delta\phi)^2 \\rangle}{\\frac{\kappa^{2}}{4\\pi^{2}}}=$'+str(round(hpotential0[0] / (params.kappa**2/4/pi**2),6)))
-    ax.text(0.05, 0.30, '$N_{e-folds}$='+str(round(N_efolds(a[-1]),2)))
-    ax.text(0.05, 0.25, '$n_{max}$='+str(round(params.k_modes,1)))
-    ax.set_xticklabels([])
-    ax.set_yticklabels([])
+# Just use the \ell = 0 modes
+deltaphi = phi_l0
+deltaphidot = phidot_l0
+psi = psi_l0
+num_modes = params.k_modes
+k_modes = params.k_grids[0]
 
 
-##########################################
-# create pdf output of plots
-##########################################
+######################
+# Plotting Functions #
+######################
 
-pdf_pages = PdfPages(args.outfilename)
+class PlotStyle(Enum):
+    LINEAR = 1
+    LOG10 = 2
 
-# print initial conditions
-fig0 = plt.figure(figsize=(8.0, 8.0), dpi=70)
-cover_sheet()
-pdf_pages.savefig(fig0)
+def create_cover_sheet(canvas):
+    # Create a plot on the canvas
+    ax = canvas.add_subplot(1, 1, 1)
 
-# plot background quantities over all of inflation
-fig1 = plt.figure(figsize=(14.0, 14.0), dpi=100)
-fig1_numplots = 4
+    # Add the text we want
+    ax.text(0.05, 0.95, r'$K$ = 0.0')
+    ax.text(0.05, 0.90, (r'$\frac{\delta\rho^{(2)}(0)}{\rho(0)}$ = '
+                         + str(round(deltarho2[0]/rho[0], 3))))
+    ax.text(0.05, 0.85, r'$R_{\rm max} H(0)$ = ' + str(round(params.Rmax, 1)))
+    ax.text(0.05, 0.80, r'$\lambda$ = ' + str(params.model.lamda))
+    ax.text(0.05, 0.75, r'$\frac{\kappa}{H(0)}$ = ' + str(round(params.kappa/H[0], 1)))
+    ax.text(0.05, 0.70, r'$\phi_0$ = ' + str(phi0[0]))
+    ax.text(0.05, 0.65, r'$\dot{\phi}_0$ = ' + str(phi0dot[0]))
+    ax.text(0.05, 0.60, r'$a(0)$ = ' + str(a[0]))
+    ax.text(0.05, 0.55, r'$H(0)$ = ' + str(round(H[0], 6)))
+    ax.text(0.05, 0.50, r'$\frac{\kappa^2}{4\pi^2}$ = ' + str(round((params.kappa**2/4/pi**2), 6)))
+    ax.text(0.05, 0.45, r'$\langle \delta\phi^2 \rangle$ = ' + str(round(phi2pt[0], 6)))
+    ax.text(0.05, 0.35, (r'$\frac{\langle \delta\phi^2 \rangle}{(\kappa^2/4\pi^2)}$ = '
+                         + str(round(phi2pt[0] / (params.kappa**2/4/pi**2), 6))))
+    ax.text(0.05, 0.40, r'$\langle \psi^2 \rangle$ = ' + str(round(psi2pt[0], 6)))
+    ax.text(0.05, 0.30, r'$N_{\rm e-folds}$ = ' + str(round(N_efolds(a[-1]), 2)))
+    ax.text(0.05, 0.25, r'$n_{\rm max}$ = ' + str(round(params.k_modes, 1)))
 
-basic_plot(a, H, 1, fig1_numplots, 1)
-plt.xlabel('ln(a)')
-plt.ylabel('H')
+    # Hide the ticks (this is an empty plot!)
+    ax.tick_params(
+        axis='both',
+        which='both',
+        bottom=False,
+        top=False,
+        left=False,
+        right=False,
+        labelleft=False,
+        labelbottom=False)
 
-basic_plot(a, Hdot, 1, fig1_numplots, 2)
-plt.xlabel('ln(a)')
-plt.ylabel('$\\dot{H}$')
+def make_pdf(pages, filename):
+    # Create the PDF file
+    print(f"Creating {filename}")
+    pdf_pages = PdfPages(filename)
 
-basic_plot(a, phi0, 1, fig1_numplots, 3)
-plt.xlabel('ln(a)')
-plt.ylabel('$\\phi$')
+    # Write the cover sheet
+    plt.rcParams["font.family"] = "serif"
+    canvas = plt.figure(figsize=(8.0, 8.0), dpi=70)
+    create_cover_sheet(canvas)
+    pdf_pages.savefig(canvas)
 
-basic_plot(a, -Hdot/(H*H), 1, fig1_numplots, 4)
-plt.xlabel('ln(a)')
-plt.ylabel('$\\epsilon$')
+    # Create the plots
+    for idx, page in enumerate(pages):
+        # Create the canvas
+        canvas = plt.figure(figsize=(14.0, 14.0), dpi=100)
 
-pdf_pages.savefig(fig1)
+        # Sort out the page configuration
+        numfigs = len(page)
+        if numfigs in [1, 2]:
+            rows = 2
+            cols = 1
+        elif numfigs in [3, 4]:
+            rows = 2
+            cols = 2
+        else:
+            print(f"Page {idx+1} has too many figures; only 4 will be produced")
+            rows = 2
+            cols = 2
+            page = page[0:4]
 
+        # Create the figures
+        for fig, definition in enumerate(page):
+            # Define the plotting location
+            plt.subplot(rows, cols, fig + 1)
 
-# plot energy densities over first e-fold
-fig2 = plt.figure(figsize=(14.0, 14.0), dpi=100)
-fig2_numplots = 3
+            # Specify when to use scientific notation
+            plt.ticklabel_format(style='scientific', axis='y', scilimits=(-2, 2))
 
-basic_plot(a, rho, 3, fig2_numplots, 1)
-plt.xlabel('ln(a)')
-plt.ylabel('ln$(\\rho$)')
-plt.xlim(0, 1)
+            # Determine the plotting function
+            if definition['y_type'] == PlotStyle.LOG10:
+                plotter = plt.semilogy
+            elif definition['y_type'] == PlotStyle.LINEAR:
+                plotter = plt.plot
+            else:
+                print(f"Bad plotting instruction on page {idx+1}, figure {fig+1}")
 
-basic_plot(a, deltarho2, 3, fig2_numplots, 2)
-plt.xlabel('ln(a)')
-plt.ylabel('ln($\\delta\\rho_{2}$)')
-plt.xlim(0, 1)
+            # Do we have one data series, or a list?
+            data = definition['y']
+            if not isinstance(data, list):
+                data = [data]
 
-basic_plot(a, deltarho2/rho, 3, fig2_numplots, 3)
-plt.xlabel('ln(a)')
-plt.ylabel('ln($\\frac{\\delta\\rho_{2}}{\\rho}$)')
-plt.xlim(0, 1)
+            # Create the plot
+            for y_series in data:
+                y_data = np.real(y_series)
+                plotter(definition['x'], y_data)
 
-pdf_pages.savefig(fig2)
+            # Set the plot range
+            if definition['x_range']:
+                plt.xlim(*definition['x_range'])
+            else:
+                plt.xlim((definition['x'][0], definition['x'][-1]))
+            if definition['y_range']:
+                plt.ylim(*definition['y_range'])
 
+            # Apply labels
+            plt.xlabel(definition['x_label'])
+            plt.ylabel(definition['y_label'])
 
-# plot energy densities over all of inflation
-fig3 = plt.figure(figsize=(14.0, 14.0), dpi=100)
-fig3_numplots = 3
+        # Save the page
+        pdf_pages.savefig(canvas)
 
-basic_plot(a, rho, 3, fig3_numplots, 1)
-plt.xlabel('ln(a)')
-plt.ylabel('ln$(\\rho$)')
+    # Finish the file
+    pdf_pages.close()
+    print("Finished!")
 
-basic_plot(a, deltarho2, 3, fig3_numplots, 2)
-plt.xlabel('ln(a)')
-plt.ylabel('ln($\\delta\\rho_{2}$)')
-
-basic_plot(a, deltarho2/rho, 3, fig3_numplots, 3)
-plt.xlabel('ln(a)')
-plt.ylabel('ln($\\frac{\\delta\\rho_{2}}{\\rho}$)')
-
-pdf_pages.savefig(fig3)
-
-
-# plot dimensionless power spectrum for phi modes
-fig4 = plt.figure(figsize=(14.0, 14.0), dpi=100)
-fig4_numplots = 2
-
-for i in range(params.k_modes):
-    basic_plot(a, ((1/(2*pi*pi)) * (params.k_grids[0][i] * params.k_grids[0][i] * params.k_grids[0][i]) * np.real(phi[i]*np.conj(phi[i]))), 3, fig4_numplots, 1)
-plt.xlabel('ln(a)')
-plt.ylabel('ln($\\frac{k^{3}}{2\\pi^{2}} |\\phi_{k}|^{2}$)')
-plt.xlim(0, 1.5)
-
-for i in range(params.k_modes):
-    basic_plot(a, ((1/(2*pi*pi)) * (params.k_grids[0][i] * params.k_grids[0][i] * params.k_grids[0][i]) * np.real(phi[i]*np.conj(phi[i]))), 3, fig4_numplots, 2)
-plt.xlabel('ln(a)')
-plt.ylabel('ln($\\frac{k^{3}}{2\\pi^{2}} |\\phi_{k}|^{2}$)')
-
-pdf_pages.savefig(fig4)
-
-# plot dimensionless power spectrum for psi modes
-fig5 = plt.figure(figsize=(14.0, 14.0), dpi=100)
-fig5_numplots = 2
-
-for i in range(params.k_modes):
-    basic_plot(a, ((1/(2*pi*pi)) * (params.k_grids[0][i] * params.k_grids[0][i] * params.k_grids[0][i]) * np.real(psi[i]*np.conj(psi[i]))), 3, fig5_numplots, 1)
-plt.xlabel('ln(a)')
-plt.ylabel('($\\frac{k^{3}}{2\\pi^{2}} |\\Psi_{k}|^{2}$)')
-plt.xlim(0, 1.5)
-
-for i in range(params.k_modes):
-    basic_plot(a, ((1/(2*pi*pi)) * (params.k_grids[0][i] * params.k_grids[0][i] * params.k_grids[0][i]) * np.real(psi[i]*np.conj(psi[i]))), 3, fig5_numplots, 2)
-plt.xlabel('ln(a)')
-plt.ylabel('($\\frac{k^{3}}{2\\pi^{2}} |\\Psi_{k}|^{2}$)')
-
-pdf_pages.savefig(fig5)
-
-
-# plot real and imaginary components of psi modes
-fig5alt = plt.figure(figsize=(14.0, 14.0), dpi=100)
-fig5alt_numplots = 2
-
-for i in range(params.k_modes):
-    basic_plot(a, np.real(psi[i]), 1, fig5alt_numplots, 1)
-plt.xlabel('ln(a)')
-plt.ylabel('($\\psi_{k}$)_{real}')
-plt.xlim(0.4, 1.2)
-plt.ylim(-0.01,0.01)
-
-for i in range(params.k_modes):
-    basic_plot(a, np.imag(psi[i]), 1, fig5alt_numplots, 2)
-plt.xlabel('ln(a)')
-plt.ylabel('($\\psi_{k}$)_{imag}')
-plt.xlim(0.4, 1.2)
-plt.ylim(-0.01,0.01)
-
-pdf_pages.savefig(fig5alt)
-
-# plot real and imaginary components of psi modes
-fig5alt1 = plt.figure(figsize=(14.0, 14.0), dpi=100)
-fig5alt1_numplots = 2
-
-for i in range(params.k_modes):
-    basic_plot(a, np.real(psi[i]), 1, fig5alt1_numplots, 1)
-plt.xlabel('ln(a)')
-plt.ylabel('($\\psi_{k}$)_{real}')
-plt.xlim(0, 3)
-plt.ylim(-0.1,0.1)
-
-for i in range(params.k_modes):
-    basic_plot(a, np.imag(psi[i]), 1, fig5alt1_numplots, 2)
-plt.xlabel('ln(a)')
-plt.ylabel('($\\psi_{k}$)_{imag}')
-plt.xlim(0, 3)
-plt.ylim(-0.1,0.1)
-
-pdf_pages.savefig(fig5alt1)
+def define_fig(x_data, y_data,
+               x_label=r"$\ln(a)$", y_label=None,
+               x_range=None, y_range=None,
+               y_type=PlotStyle.LINEAR):
+    """Constructs data for a figure"""
+    return {
+        'x': x_data,
+        'y': y_data,
+        'x_label': x_label,
+        'y_label': y_label,
+        'x_range': x_range,
+        'y_range': y_range,
+        'y_type': y_type
+    }
 
 
-# plot psi RMS
-fig6 = plt.figure(figsize=(14.0, 14.0), dpi=100)
-fig6_numplots = 2
+####################
+# Plot Definitions #
+####################
 
-basic_plot(a, np.sqrt(psi2pt), 1, fig6_numplots, 1)
-plt.xlabel('ln(a)')
-plt.ylabel('$\\sqrt{\\langle (\\Psi)^2 \\rangle}$')
-plt.xlim(0, 1.5)
+# Note that it is relatively quick to make all these definitions
+# The slow part is the plotting of whatever is actually included in the PDF
+# So, it is convenient to define everything we could ever want to plot here!
 
-basic_plot(a, np.sqrt(psi2pt), 1, fig6_numplots, 2)
-plt.xlabel('ln(a)')
-plt.ylabel('$\\sqrt{\\langle (\\Psi)^2 \\rangle}$')
+# x-axis for all the plots
+lna = np.log(a)
+# Range defining 'early' times
+early = (0, 7)
 
-pdf_pages.savefig(fig6)
+# Background quantities
+Hplot = define_fig(x_data=lna, y_data=H, y_label='H')
+Hdotplot = define_fig(x_data=lna, y_data=Hdot, y_label=r'$\dot{H}$')
+phi0plot = define_fig(x_data=lna, y_data=phi0, y_label=r'$\phi_0$')
+epsilonplot = define_fig(x_data=lna, y_data=-Hdot/H**2, y_label=r'$\epsilon$')
+
+# Energies
+rhoplot = define_fig(x_data=lna,
+                     y_data=rho,
+                     y_label=r'$\rho$',
+                     y_type=PlotStyle.LOG10)
+deltarho2plot = define_fig(x_data=lna,
+                           y_data=deltarho2,
+                           y_label=r'$\delta\rho^{(2)}$',
+                           y_type=PlotStyle.LOG10)
+energyratio = define_fig(x_data=lna,
+                         y_data=deltarho2/rho,
+                         y_label=r'$\frac{\delta\rho^{(2)}}{\rho}$',
+                         y_type=PlotStyle.LOG10)
+# Energies restricted to early times
+rhoplot_early = {**rhoplot, 'x_range': early}
+deltarho2plot_early = {**deltarho2plot, 'x_range': early}
+energyratio_early = {**energyratio, 'x_range': early}
+
+# \delta\phi_k power spectrum
+data = []
+for i in range(num_modes):
+    data.append(1/(2*pi**2) * k_modes[i]**3 * deltaphi[i] * np.conj(deltaphi[i]))
+deltaphiplots = define_fig(x_data=lna,
+                           y_data=data,
+                           y_label=r'$\frac{k^3}{2\pi^2} |\delta \phi_{k}|^2$',
+                           y_type=PlotStyle.LOG10)
+deltaphiplots_early = {**deltaphiplots, 'x_range': early}
+
+# \psi power spectrum
+data = []
+for i in range(num_modes):
+    data.append(1/(2*pi**2) * k_modes[i]**3 * psi[i] * np.conj(psi[i]))
+psiplots = define_fig(x_data=lna,
+                      y_data=data,
+                      y_label=r'$\frac{k^3}{2\pi^2} |\psi_{k}|^2$',
+                      y_type=PlotStyle.LOG10)
+psiplots_early = {**psiplots, 'x_range': early}
+
+# \psi real and imaginary parts
+data = [np.real(line) for line in psi]
+psireplots = define_fig(x_data=lna,
+                        y_data=data,
+                        y_label=r'$\mathrm{Re}(\psi_{k})$',
+                        y_range=[-0.1, 0.1],
+                        x_range=early)
+data = [np.imag(line) for line in psi]
+psiimplots = define_fig(x_data=lna,
+                        y_data=data,
+                        y_label=r'$\mathrm{Im}(\psi_{k})$',
+                        y_range=[-0.1, 0.1],
+                        x_range=early)
+
+# \psi RMS value
+psirmsplot = define_fig(x_data=lna,
+                        y_data=np.sqrt(psi2pt),
+                        y_label=r'$\sqrt{\langle \psi^2 \rangle}$')
+psirmsplot_early = {**psirmsplot, 'x_range': early}
+
+# \psi constraint violation
+real_data = []
+imag_data = []
+for i in range(num_modes):
+    constraint = 1/2*(phi0ddot*deltaphi[i] - phi0dot*deltaphidot[i]) / (Hdot + k_modes[i]**2/(a*a))
+    violation = constraint - psi[i]
+    real_data.append(np.real(violation))
+    imag_data.append(np.imag(violation))
+psi_violations_real = define_fig(x_data=lna,
+                                 y_data=real_data,
+                                 y_label=r'$\mathrm{Re}(C_k)$',
+                                 y_range=(-1, 1))
+psi_violations_imag = define_fig(x_data=lna,
+                                 y_data=imag_data,
+                                 y_label=r'$\mathrm{Im}(C_k)$',
+                                 y_range=(-1, 1))
+psi_violations_real_early = {**psi_violations_real, 'x_range': early}
+psi_violations_imag_early = {**psi_violations_imag, 'x_range': early}
+
+# Other plots we may want to define:
+# Hubble violation
+# deltarho2_kinetic
+# deltarho2_kinetic / \dot{\phi}_0^2
+# R
 
 
-# plot psi constraint
-fig7 = plt.figure(figsize=(14.0, 14.0), dpi=100)
-fig7_numplots = 2
+###########################
+# PDF Layout and Creation #
+###########################
 
-for i in range(params.k_modes):
-    psi_constraint_complex = (0.5*(phi0ddot*phi[i]-phi0dot*phidot[i])) / (Hdot + params.k_grids[0][i]*params.k_grids[0][i]/(a*a)) - psi[i]
-    basic_plot(a, np.real(psi_constraint_complex), 1, fig7_numplots, 1)
-    basic_plot(a, np.imag(psi_constraint_complex), 1, fig7_numplots, 1)
-plt.xlabel('ln(a)')
-plt.ylabel('$ C_{k} $')
-plt.xlim(0, 1.5)
+# Lay out the figures in pages
+# We recommend commenting out pages that you don't want, rather than deleting them
+pages = [
+    [Hplot, Hdotplot, phi0plot, epsilonplot],
+    [rhoplot_early, deltarho2plot_early, energyratio_early],
+    [rhoplot, deltarho2plot, energyratio],
+    [deltaphiplots_early, deltaphiplots],
+    [psiplots_early, psiplots],
+    [psireplots, psiimplots],
+    [psirmsplot_early, psirmsplot],
+    [psi_violations_real, psi_violations_imag],
+    [psi_violations_real_early, psi_violations_imag_early]
+]
 
-for i in range(params.k_modes):
-    psi_constraint_complex = (0.5*(phi0ddot*phi[i]-phi0dot*phidot[i])) / (Hdot + params.k_grids[0][i]*params.k_grids[0][i]/(a*a)) - psi[i]
-    basic_plot(a, np.real(psi_constraint_complex), 1, fig7_numplots, 2)
-    basic_plot(a, np.imag(psi_constraint_complex), 1, fig7_numplots, 2)
-plt.xlabel('ln(a)')
-plt.ylabel('$ C_{k} $')
-
-pdf_pages.savefig(fig7)
-
-pdf_pages.close()
+# Construct the PDF
+make_pdf(pages, args.outfilename)
