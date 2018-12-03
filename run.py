@@ -27,7 +27,7 @@ phi0dot = 0.01
 # Specify timing information
 start_time = 0
 end_time = 5000 * sqrt(1e-6/infmodel.lamda)
-timestepinfo = [200, 10]
+timestepinfo = [1000, 10]
 # ~steps per efold (inside horizon), ~steps per efold (outside horizon)
 
 # Construct parameters class and initial data

@@ -233,7 +233,7 @@ class Model(AbstractModel):
 
         # Compute the timestep
         timestep = 1.71828 * a / factor / adot
-        print(timestep, 1.0 * np.sqrt(1e-6/self.parameters.model.lamda))
+        # print(timestep, 1.0 * np.sqrt(1e-6/self.parameters.model.lamda))
         return timestep
         # Old code:
         # return 1.0 * np.sqrt(1e-6/self.parameters.model.lamda)
