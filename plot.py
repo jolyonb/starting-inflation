@@ -80,7 +80,10 @@ class PlotStyle(Enum):
     LOG10 = 2
 
 def create_cover_sheet(canvas):
-    ax = canvas.add_subplot(111)
+    # Create a plot on the canvas
+    ax = canvas.add_subplot(1, 1, 1)
+
+    # Add the text we want
     ax.text(0.05, 0.95, r'$K$ = 0.0')
     ax.text(0.05, 0.90, (r'$\frac{\delta\rho^{(2)}(0)}{\rho(0)}$ = '
                          + str(round(deltarho2[0]/rho[0], 3))))
@@ -98,8 +101,17 @@ def create_cover_sheet(canvas):
     ax.text(0.05, 0.40, r'$\langle \psi^2 \rangle$ = ' + str(round(psi2pt[0], 6)))
     ax.text(0.05, 0.30, r'$N_{\rm e-folds}$ = ' + str(round(N_efolds(a[-1]), 2)))
     ax.text(0.05, 0.25, r'$n_{\rm max}$ = ' + str(round(params.k_modes, 1)))
-    ax.set_xticklabels([])
-    ax.set_yticklabels([])
+
+    # Hide the ticks (this is an empty plot!)
+    ax.tick_params(
+        axis='both',
+        which='both',
+        bottom=False,
+        top=False,
+        left=False,
+        right=False,
+        labelleft=False,
+        labelbottom=False)
 
 def make_pdf(pages, filename):
     # Create the PDF file
@@ -135,6 +147,9 @@ def make_pdf(pages, filename):
         for fig, definition in enumerate(page):
             # Define the plotting location
             plt.subplot(rows, cols, fig + 1)
+
+            # Specify when to use scientific notation
+            plt.ticklabel_format(style='scientific', axis='y', scilimits=(-2, 2))
 
             # Determine the plotting function
             if definition['y_type'] == PlotStyle.LOG10:
