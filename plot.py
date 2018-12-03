@@ -203,6 +203,10 @@ def define_fig(x_data, y_data,
         'y_type': y_type
     }
 
+def early(data, range=(0, 7)):
+    """Restricts the plotting range in x to the given range"""
+    return {**data, 'x_range': range}
+
 
 ####################
 # Plot Definitions #
@@ -214,8 +218,6 @@ def define_fig(x_data, y_data,
 
 # x-axis for all the plots
 lna = np.log(a)
-# Range defining 'early' times
-early = (0, 7)
 
 # Background quantities
 Hplot = define_fig(x_data=lna, y_data=H, y_label='H')
@@ -236,10 +238,6 @@ energyratio = define_fig(x_data=lna,
                          y_data=deltarho2/rho,
                          y_label=r'$\frac{\delta\rho^{(2)}}{\rho}$',
                          y_type=PlotStyle.LOG10)
-# Energies restricted to early times
-rhoplot_early = {**rhoplot, 'x_range': early}
-deltarho2plot_early = {**deltarho2plot, 'x_range': early}
-energyratio_early = {**energyratio, 'x_range': early}
 
 # \delta\phi_k power spectrum
 data = []
@@ -249,7 +247,6 @@ deltaphiplots = define_fig(x_data=lna,
                            y_data=data,
                            y_label=r'$\frac{k^3}{2\pi^2} |\delta \phi_{k}|^2$',
                            y_type=PlotStyle.LOG10)
-deltaphiplots_early = {**deltaphiplots, 'x_range': early}
 
 # \psi power spectrum
 data = []
@@ -259,27 +256,23 @@ psiplots = define_fig(x_data=lna,
                       y_data=data,
                       y_label=r'$\frac{k^3}{2\pi^2} |\psi_{k}|^2$',
                       y_type=PlotStyle.LOG10)
-psiplots_early = {**psiplots, 'x_range': early}
 
 # \psi real and imaginary parts
 data = [np.real(line) for line in psi]
 psireplots = define_fig(x_data=lna,
                         y_data=data,
                         y_label=r'$\mathrm{Re}(\psi_{k})$',
-                        y_range=[-0.1, 0.1],
-                        x_range=early)
+                        y_range=[-0.1, 0.1])
 data = [np.imag(line) for line in psi]
 psiimplots = define_fig(x_data=lna,
                         y_data=data,
                         y_label=r'$\mathrm{Im}(\psi_{k})$',
-                        y_range=[-0.1, 0.1],
-                        x_range=early)
+                        y_range=[-0.1, 0.1])
 
 # \psi RMS value
 psirmsplot = define_fig(x_data=lna,
                         y_data=np.sqrt(psi2pt),
                         y_label=r'$\sqrt{\langle \psi^2 \rangle}$')
-psirmsplot_early = {**psirmsplot, 'x_range': early}
 
 # \psi constraint violation
 real_data = []
@@ -297,8 +290,6 @@ psi_violations_imag = define_fig(x_data=lna,
                                  y_data=imag_data,
                                  y_label=r'$\mathrm{Im}(C_k)$',
                                  y_range=(-1, 1))
-psi_violations_real_early = {**psi_violations_real, 'x_range': early}
-psi_violations_imag_early = {**psi_violations_imag, 'x_range': early}
 
 # Other plots we may want to define:
 # Hubble violation
@@ -315,14 +306,14 @@ psi_violations_imag_early = {**psi_violations_imag, 'x_range': early}
 # We recommend commenting out pages that you don't want, rather than deleting them
 pages = [
     [Hplot, Hdotplot, phi0plot, epsilonplot],
-    [rhoplot_early, deltarho2plot_early, energyratio_early],
+    [early(rhoplot), early(deltarho2plot), early(energyratio)],
     [rhoplot, deltarho2plot, energyratio],
-    [deltaphiplots_early, deltaphiplots],
-    [psiplots_early, psiplots],
-    [psireplots, psiimplots],
-    [psirmsplot_early, psirmsplot],
+    [early(deltaphiplots), deltaphiplots],
+    [early(psiplots), psiplots],
+    [early(psireplots), early(psiimplots)],
+    [early(psirmsplot), psirmsplot],
     [psi_violations_real, psi_violations_imag],
-    [psi_violations_real_early, psi_violations_imag_early]
+    [early(psi_violations_real), early(psi_violations_imag)]
 ]
 
 # Construct the PDF
