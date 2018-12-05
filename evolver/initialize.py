@@ -333,7 +333,7 @@ def pack(a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB):
     Returns:
         * data: A numpy array containing all data
     """
-    background = np.array([a, 0, phi0, phi0dot])
+    background = np.array([a, phi0, phi0dot])
     return np.concatenate((background, phiA, phidotA, psiA, phiB, phidotB, psiB))
 
 def eqpack(adot, phi0dot, phi0ddot,
@@ -350,7 +350,7 @@ def eqpack(adot, phi0dot, phi0ddot,
     Returns:
         * data: A numpy array containing all data
     """
-    background = np.array([adot, 0, phi0dot, phi0ddot])
+    background = np.array([adot, phi0dot, phi0ddot])
     return np.concatenate((background, phidotA, phiddotA, psidotA,
                            phidotB, phiddotB, psidotB))
 
@@ -369,14 +369,14 @@ def unpack(data, total_wavenumbers):
     """
     # Grab a, phi0 and phi0dot
     a = data[0]
-    phi0 = data[2]
-    phi0dot = data[3]
+    phi0 = data[1]
+    phi0dot = data[2]
 
     # How many fields do we have here?
     numfields = total_wavenumbers
 
     # Unpack all the data
-    fields = data[4:]
+    fields = data[3:]
     phiA = fields[0:numfields]
     phidotA = fields[numfields:2*numfields]
     psiA = fields[2*numfields:3*numfields]
