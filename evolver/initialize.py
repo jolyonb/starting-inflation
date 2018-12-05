@@ -89,7 +89,7 @@ class Parameters(AbstractParameters):
         Writes initialization info to file.
         """
         unpacked_data = unpack(data, self.total_wavenumbers)
-        a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
+        a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
 
         (rho, deltarho2, H, adot, Hdot, addot, epsilon,
          phi0ddot, phi2pt, phi2ptdt, phi2ptgrad) = compute_all(unpacked_data, self)
@@ -148,7 +148,7 @@ class Model(AbstractModel):
             self.parameters.haltmsg = "Inflation has ended"
 
         # Combine everything into a single array
-        return eqpack(adot, addot, phi0dot, phi0ddot,
+        return eqpack(adot, phi0dot, phi0ddot,
                       phidotA, phiddotA, psidotA,
                       phidotB, phiddotB, psidotB)
 
@@ -164,15 +164,13 @@ class Model(AbstractModel):
         Returns: None
         """
         unpacked_data = unpack(self.data, self.parameters.total_wavenumbers)
-        a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
+        a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
 
         (rho, deltarho2, H, adot, Hdot, addot, epsilon, phi0ddot,
          phi2pt, phi2ptdt, phi2ptgrad) = compute_all(unpacked_data, self.parameters)
 
         # compute 2pt function of Psi
         psi2pt = compute_2ptpsi(psiA, psiB, self.parameters)
-
-        hubble_violation = compute_hubble_constraint_viol(a, adot, rho, deltarho2)
 
         model = self.parameters.model
         V = model.potential(phi0)
@@ -182,7 +180,7 @@ class Model(AbstractModel):
         Vdddd = model.ddddpotential(phi0)
 
         extradata = [H, Hdot, addot, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad, psi2pt,
-                     rho, deltarho2, hubble_violation, V, Vd, Vdd, Vddd, Vdddd]
+                     rho, deltarho2, epsilon, V, Vd, Vdd, Vddd, Vdddd]
 
         sep = self.separator
         self.parameters.f2.write(str(self.time) + sep + sep.join(map(str, extradata)) + "\n")
@@ -196,8 +194,8 @@ class Model(AbstractModel):
         # 1 efold = e * a
         # Delta a = (e-1) * a / factor
         a = self.data[0]
-        adot = np.exp(self.data[1])
-        H = adot / a
+        unpacked_data = unpack(self.data, self.parameters.total_wavenumbers)
+        _, _, H, adot, _, _, _, _, _, _, _ = compute_all(unpacked_data, self.parameters)
 
         # Get the shortest wavelength
         lamda = 2*np.pi/self.parameters.k_grids[0][-1]
@@ -319,42 +317,40 @@ def make_initial_data(phi0, phi0dot, k_modes, hartree, model,
                                      phi2pt, phi2ptdt, phi2ptgrad, params)
 
     # Pack all the initial data together
-    data = pack(a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
+    data = pack(a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
 
     # Return the data
     return params, data
 
-def pack(a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB):
+def pack(a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB):
     """
     Pack all field values into a data array for integration.
 
     Arguments:
-        * a, adot, phi0, phi0dot: Respective values to pack
+        * a, phi0, phi0dot: Respective values to pack
         * phiA, phidotA, psiA, phiB, phidotB, psiB: Arrays of values for each wavenumber
 
     Returns:
         * data: A numpy array containing all data
-    Note that adot is stored as a logarithm
     """
-    background = np.array([a, np.log(adot), phi0, phi0dot])
+    background = np.array([a, 0, phi0, phi0dot])
     return np.concatenate((background, phiA, phidotA, psiA, phiB, phidotB, psiB))
 
-def eqpack(adot, addot, phi0dot, phi0ddot,
+def eqpack(adot, phi0dot, phi0ddot,
            phidotA, phiddotA, psidotA,
            phidotB, phiddotB, psidotB):
     """
     Pack all field values into a data array for integration.
 
     Arguments:
-        * adot, addot, phi0dot, phi0ddot: Respective values to pack
+        * adot, phi0dot, phi0ddot: Respective values to pack
         * phidotA, phiddotA, psidotA,
           phidotB, phiddotB, psidotB: Arrays of values for each wavenumber
 
     Returns:
         * data: A numpy array containing all data
-    Note that adot is stored as d(ln(adot))dt = addot/adot
     """
-    background = np.array([adot, addot/adot, phi0dot, phi0ddot])
+    background = np.array([adot, 0, phi0dot, phi0ddot])
     return np.concatenate((background, phidotA, phiddotA, psidotA,
                            phidotB, phiddotB, psidotB))
 
@@ -368,12 +364,11 @@ def unpack(data, total_wavenumbers):
         * total_wavenumbers: The total number of modes being packed/unpacked
 
     Returns:
-        * (a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
+        * (a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
           where these quantities are as initialized in make_initial_data
     """
-    # Grab a, adot, phi0 and phi0dot
+    # Grab a, phi0 and phi0dot
     a = data[0]
-    adot = np.exp(data[1])  # Note this needs to be exponentiated
     phi0 = data[2]
     phi0dot = data[3]
 
@@ -390,4 +385,4 @@ def unpack(data, total_wavenumbers):
     psiB = fields[5*numfields:6*numfields]
 
     # Return the results
-    return a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB
+    return a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB

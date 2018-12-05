@@ -27,7 +27,7 @@ with open(args.filename + ".dat") as f:
     data = f.readlines()
 results = np.array([list(map(float, line.split(", "))) for line in data]).transpose()
 t = results[0]
-(a, adot, phi0, phi0dot, phiA, phidotA,
+(a, phi0, phi0dot, phiA, phidotA,
  psiA, phiB, phidotB, psiB) = unpack(results[1:], params.total_wavenumbers)
 
 # File 2
@@ -35,7 +35,10 @@ with open(args.filename + ".dat2") as f:
     data2 = f.readlines()
 results2 = np.array([list(map(float, line.split(", "))) for line in data2]).transpose()
 (H, Hdot, addot, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad, psi2pt, rho,
-    deltarho2, hubble_violation, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
+    deltarho2, epsilon, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
+
+# Construct background quantities
+adot = a * H
 
 # Construct the perturbative modes
 # \ell = 0
@@ -223,7 +226,7 @@ lna = np.log(a)
 Hplot = define_fig(x_data=lna, y_data=H, y_label='H')
 Hdotplot = define_fig(x_data=lna, y_data=Hdot, y_label=r'$\dot{H}$')
 phi0plot = define_fig(x_data=lna, y_data=phi0, y_label=r'$\phi_0$')
-epsilonplot = define_fig(x_data=lna, y_data=-Hdot/H**2, y_label=r'$\epsilon$')
+epsilonplot = define_fig(x_data=lna, y_data=epsilon, y_label=r'$\epsilon$')
 
 # Energies
 rhoplot = define_fig(x_data=lna,
