@@ -3,11 +3,21 @@
 """
 Plots the results from a parameter sweep
 """
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.backends.backend_pdf import PdfPages
 from evolver.analysis import load_data, analyze
+
+####################################
+# Deal with command line arguments #
+####################################
+parser = argparse.ArgumentParser(description="Plot data from a sweep")
+parser.add_argument("filename", help="Base of the output name to read data in from")
+parser.add_argument("outfilename", help="Filename to output to (include .pdf)")
+args = parser.parse_args()
+
 
 def phase_plotter(phis, phidots, cs, infls, cname):
     fig = plt.figure(figsize=(7.0, 7.0), dpi=100)
@@ -19,18 +29,12 @@ def phase_plotter(phis, phidots, cs, infls, cname):
     cbr.set_label(cname, rotation=270, fontsize=8)
     return fig
 
-# Output file for the sweep plots:
-sweep_plt = "sweep_hOff.pdf"
-
-# The info file to read from
-filename = "data/output-info.txt"
-
 # Specify the critical number of efolds above/below which we determine
 # sufficient/insufficient inflation
 Nef_crit = 60.0
 
 # Suck up the data
-with open(filename) as f:
+with open(args.filename + "-info.txt") as f:
     lines = f.readlines()
 
 # Find all of the runs to read from
@@ -65,11 +69,11 @@ for file, phi0, phi0dot in data:
     plot_data["deltarho2"].append(results["deltarho2"][0])
     plot_data["phi2pt"].append(results["phi2pt"][0])
     if "efolds" in details:
-        plot_data["efolds"].append(results["phi0"][0])
+        plot_data["efolds"].append(details['efolds'])
     else:
         plot_data["efolds"].append(0.0)
     # Did sufficient inflation occur?
-    if plot_data["efolds"] >= Nef_crit:
+    if details['efolds'] >= Nef_crit:
         plot_data["infl"].append(1)
     else:
         plot_data["infl"].append(0)
@@ -79,7 +83,7 @@ for key in plot_data:
     plot_data[key] = np.array(plot_data[key])
 
 # Create PDF plots
-pdf_pages = PdfPages(sweep_plt)
+pdf_pages = PdfPages(args.outfilename)
 #
 fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
                     plot_data["efolds"],

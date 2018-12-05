@@ -31,7 +31,7 @@ phi0dot = np.linspace(-0.01, 0.01, 10)
 # Specify timing information
 start_time = 0
 end_time = 5000 * sqrt(1e-6/infmodel.lamda)
-timestepinfo = [1000, 10]
+timestepinfo = [10, 10]
 # ~steps per efold (inside horizon), ~steps per efold (outside horizon)
 
 run = 0
