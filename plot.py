@@ -241,6 +241,28 @@ energyratio = define_fig(x_data=lna,
                          y_data=deltarho2/rho,
                          y_label=r'$\frac{\delta\rho^{(2)}}{\rho}$',
                          y_type=PlotStyle.LOG10)
+deltaphidot2plot = define_fig(x_data=lna,
+                              y_data=phi2ptdt/2,
+                              y_label=r'$\langle \dot{\phi}^2 \rangle / 2$',
+                              y_type=PlotStyle.LOG10)
+phidot2plot = define_fig(x_data=lna,
+                         y_data=phi0dot**2/2,
+                         y_label=r'$\dot{\phi}_0^2 / 2$',
+                         y_type=PlotStyle.LOG10)
+kineticratio = define_fig(x_data=lna,
+                          y_data=phi2ptdt / phi0dot**2,
+                          y_label=r'$\langle \dot{\phi}^2 \rangle / \dot{\phi}_0^2$',
+                          y_type=PlotStyle.LOG10)
+
+# Perturbations compared to background
+rmsdeltaphi = define_fig(x_data=lna,
+                         y_data=np.sqrt(phi2pt),
+                         y_label=r'$\sqrt{\langle \phi^2 \rangle}$',
+                         y_type=PlotStyle.LOG10)
+rmsphionphi = define_fig(x_data=lna,
+                         y_data=np.sqrt(phi2pt) / phi0,
+                         y_label=r'$\sqrt{\langle \phi^2 \rangle} / \phi_0$',
+                         y_type=PlotStyle.LOG10)
 
 # \delta\phi_k power spectrum
 data = []
@@ -294,11 +316,15 @@ psi_violations_imag = define_fig(x_data=lna,
                                  y_label=r'$\mathrm{Im}(C_k)$',
                                  y_range=(-1, 1))
 
-# Other plots we may want to define:
-# Hubble violation
-# deltarho2_kinetic
-# deltarho2_kinetic / \dot{\phi}_0^2
-# R
+# Curvature perturbation (R)
+data = []
+for i in range(num_modes):
+    R = psi[i] + (H / phi0dot) * deltaphi[i]
+    data.append(1/2/pi**2 * k_modes[i]**3 * R * np.conj(R))
+Rplots = define_fig(x_data=lna,
+                    y_data=data,
+                    y_label=r'$\frac{k^3}{2\pi^2} |R_k|^2$',
+                    y_type=PlotStyle.LOG10)
 
 
 ###########################
@@ -311,12 +337,15 @@ pages = [
     [Hplot, Hdotplot, phi0plot, epsilonplot],
     [early(rhoplot), early(deltarho2plot), early(energyratio)],
     [rhoplot, deltarho2plot, energyratio],
+    [phidot2plot, deltaphidot2plot, kineticratio],
+    [early(rmsdeltaphi), early(rmsphionphi), rmsdeltaphi, rmsphionphi],
     [early(deltaphiplots), deltaphiplots],
     [early(psiplots), psiplots],
-    [early(psireplots), early(psiimplots)],
+#    [early(psireplots), early(psiimplots)],
     [early(psirmsplot), psirmsplot],
     [psi_violations_real, psi_violations_imag],
-    [early(psi_violations_real), early(psi_violations_imag)]
+    [early(psi_violations_real), early(psi_violations_imag)],
+    [early(Rplots), Rplots]
 ]
 
 # Construct the PDF
