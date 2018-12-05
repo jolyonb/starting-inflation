@@ -61,7 +61,7 @@ def eoms(unpacked_data, params, time=None):
     (rho, deltarho2, H, adot, Hdot, addot,
      epsilon, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad) = compute_all(unpacked_data, params)
 
-    # Compute 2-point functions if needed
+    # Turn off phi2pt for the following if needed
     if not params.hartree:
         phi2pt = 0
 
