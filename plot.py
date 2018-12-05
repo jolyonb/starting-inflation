@@ -96,9 +96,9 @@ def create_cover_sheet(canvas):
     ax.text(0.05, 0.55, r'$H(0)$ = ' + str(round(H[0], 6)))
     ax.text(0.05, 0.50, r'$\frac{\kappa^2}{4\pi^2}$ = ' + str(round((params.kappa**2/4/pi**2), 6)))
     ax.text(0.05, 0.45, r'$\langle \delta\phi^2 \rangle$ = ' + str(round(phi2pt[0], 6)))
-    ax.text(0.05, 0.35, (r'$\frac{\langle \delta\phi^2 \rangle}{(\kappa^2/4\pi^2)}$ = '
+    ax.text(0.05, 0.40, (r'$\frac{\langle \delta\phi^2 \rangle}{(\kappa^2/4\pi^2)}$ = '
                          + str(round(phi2pt[0] / (params.kappa**2/4/pi**2), 6))))
-    ax.text(0.05, 0.40, r'$\langle \psi^2 \rangle$ = ' + str(round(psi2pt[0], 6)))
+    ax.text(0.05, 0.35, r'$\langle \psi^2 \rangle$ = ' + str(round(psi2pt[0], 6)))
     ax.text(0.05, 0.30, r'$N_{\rm e-folds}$ = ' + str(round(N_efolds(a[-1]), 2)))
     ax.text(0.05, 0.25, r'$n_{\rm max}$ = ' + str(round(params.k_modes, 1)))
 

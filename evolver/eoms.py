@@ -6,6 +6,40 @@ Computes the equations of motion associated with a model
 from math import pi, sqrt
 import numpy as np
 
+def compute_all(unpacked_data, params):
+    """
+    Routine to compute all quantities of interest
+
+    Arguments:
+        * unpacked_data: Tuple containing all data:
+                         (a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
+        * params: The parameters class associated with the data
+    """
+    # Initialization
+    a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
+
+    # Compute energies
+    rho = compute_rho(phi0, phi0dot, params.model)
+    phi2pt, phi2ptdt, phi2ptgrad = compute_hartree(phiA, phidotA, phiB, phidotB, params)
+    deltarho2 = compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, params.model)
+
+    # Compute quantities that depend on Hartree on or off
+    if params.hartree:
+        H = adot / a
+        Hdot = compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad)
+        phi0ddot = compute_phi0ddot(phi0, phi0dot, H, phi2pt, params.model)
+    else:
+        H = adot / a
+        Hdot = compute_hubbledot(a, phi0dot, 0, 0)
+        phi0ddot = compute_phi0ddot(phi0, phi0dot, H, 0, params.model)
+
+    # Compute some derivative quantities
+    addot = a*(Hdot + H*H)
+    epsilon = slow_roll_epsilon(H, Hdot)
+
+    # Return results
+    return rho, deltarho2, H, adot, Hdot, addot, epsilon, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad
+
 def eoms(unpacked_data, params, time=None):
     """
     Workhorse to compute all equations of motion.
@@ -21,34 +55,30 @@ def eoms(unpacked_data, params, time=None):
     """
     # Initialization
     a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
-    H = adot/a
 
-    # Compute 2-point functions if needed
-    if params.hartree:
-        phi2pt, phi2ptdt, phi2ptgrad = compute_hartree(phiA, phidotA, phiB, phidotB, params)
-    else:
-        phi2pt, phi2ptdt, phi2ptgrad = (0, 0, 0)
+    # Compute background quantities
+    (rho, deltarho2, H, adot, Hdot, addot,
+     epsilon, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad) = compute_all(unpacked_data, params)
 
-    # Background fields
-    Hdot = compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad)
-    addot = a*(Hdot + H*H)
-    phi0ddot = compute_phi0ddot(phi0, phi0dot, H, phi2pt, params.model)
+    # Turn off phi2pt for the following if needed
+    if not params.hartree:
+        phi2pt = 0
 
     # Perturbative modes
     psidotA = compute_perturb_psidot(phi0dot, H, psiA, phiA)
     psidotB = compute_perturb_psidot(phi0dot, H, psiB, phiB)
-    phiddotA = compute_perturb_phiddot(phi0, phi0dot, a, H, phiA, phidotA, psiA, psidotA, phi2pt, params)
-    phiddotB = compute_perturb_phiddot(phi0, phi0dot, a, H, phiB, phidotB, psiB, psidotB, phi2pt, params)
+    phiddotA = compute_perturb_phiddot(phi0, phi0dot, a, H, phiA, phidotA, psiA,
+                                       psidotA, phi2pt, params)
+    phiddotB = compute_perturb_phiddot(phi0, phi0dot, a, H, phiB, phidotB, psiB,
+                                       psidotB, phi2pt, params)
 
     # Return results
-    return addot, phi0ddot, phiddotA, psidotA, phiddotB, psidotB
+    return (adot, addot, epsilon, phi0dot, phi0ddot,
+            phidotA, phiddotA, psidotA, phidotB, phiddotB, psidotB)
 
-def slow_roll_epsilon(a, adot, addot):
-    """Computes the slow roll parameter epsilon from a, adot and addot"""
-    H = adot / a
-    H2 = H*H
-    Hdot = addot / a - H2
-    return -Hdot / H2
+def slow_roll_epsilon(H, Hdot):
+    """Computes the slow roll parameter epsilon from H and Hdot"""
+    return - Hdot / (H * H)
 
 def N_efolds(a):
     """Computes the number of efolds that have passed given the current scalefactor"""
@@ -347,6 +377,7 @@ def compute_2ptgrad(fullphi1, params):
     # Do the m sum
     sumsquare = np.real(sum(fullphi1[m] * np.conj(fullphi1[m]) for m in range(3)))
     # Now do the k sum
-    result = np.sum(params.denom_fac[1] * params.k2_grids[1] * sumsquare * params.gaussian_profile[1])
+    result = np.sum(params.denom_fac[1] * params.k2_grids[1] * sumsquare
+                    * params.gaussian_profile[1])
     result /= (6*pi*params.Rmax**3)
     return result

@@ -10,9 +10,9 @@ from scipy.special import spherical_jn
 from evolver.besselroots import get_jn_roots
 from evolver.integrator import AbstractModel, AbstractParameters
 from evolver.eoms import (eoms, compute_hubble, compute_initial_psi, compute_hartree,
-                          compute_2ptpsi, compute_hubbledot, compute_phi0ddot,
+                          compute_2ptpsi,
                           compute_rho, compute_deltarho2, compute_hubble_constraint_viol,
-                          slow_roll_epsilon)
+                          compute_all)
 
 class Parameters(AbstractParameters):
     """
@@ -88,6 +88,14 @@ class Parameters(AbstractParameters):
         """
         Writes initialization info to file.
         """
+        unpacked_data = unpack(data, self.total_wavenumbers)
+        a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
+
+        (rho, deltarho2, H, adot, Hdot, addot, epsilon,
+         phi0ddot, phi2pt, phi2ptdt, phi2ptgrad) = compute_all(unpacked_data, self)
+
+        ratio = phi2pt/(self.kappa**2/4/np.pi**2)
+
         self.write_info_line("Evolution Information")
         self.write_info_line("Number of l=0 modes: {}".format(self.k_modes))
         self.write_info_line("Number of l=1 modes: {}".format(self.k_modes - 1))
@@ -96,17 +104,6 @@ class Parameters(AbstractParameters):
         self.write_info_line("kappa: {}".format(self.kappa))
         self.write_info_line("Model: {}".format(type(self.model).__name__))
         self.write_info_line(self.model.info())
-
-        unpacked_data = unpack(data, self.total_wavenumbers)
-        a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
-        H = adot/a
-
-        phi2pt, phi2ptdt, phi2ptgrad = compute_hartree(phiA, phidotA,
-                                                       phiB, phidotB,
-                                                       self)
-
-        rho = compute_rho(phi0, phi0dot, self.model)
-        deltarho2 = compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, self.model)
 
         self.write_info_line("Initial phi0: {}".format(phi0))
         self.write_info_line("Initial phi0dot: {}".format(phi0dot))
@@ -117,7 +114,6 @@ class Parameters(AbstractParameters):
         self.write_info_line("deltarho2/rho: {}".format(deltarho2/rho))
 
         self.write_info_line("Initial <deltaphi^2>: {}".format(phi2pt))
-        ratio = phi2pt/(self.kappa**2/4/np.pi**2)
         self.write_info_line(r"<deltaphi^2> / (H^2 \bar\kappa^2 / (4 pi^2)): {}".format(ratio))
 
 class Model(AbstractModel):
@@ -137,15 +133,14 @@ class Model(AbstractModel):
         """
         # Unpack the data
         unpacked_data = unpack(data, self.parameters.total_wavenumbers)
-        a, adot, _, phi0dot, _, phidotA, _, _, phidotB, _ = unpacked_data
 
         # Use the equations of motion
-        addot, phi0ddot, phiddotA, psidotA, phiddotB, psidotB = eoms(unpacked_data,
-                                                                     self.parameters,
-                                                                     time)
+        (adot, addot, epsilon, phi0dot, phi0ddot, phidotA, phiddotA,
+         psidotA, phidotB, phiddotB, psidotB) = eoms(unpacked_data,
+                                                     self.parameters,
+                                                     time)
 
         # Check for slowroll
-        epsilon = slow_roll_epsilon(a, adot, addot)
         if epsilon < 0.1:
             self.parameters.slowroll = True
         elif self.parameters.slowroll and epsilon >= 1:
@@ -170,30 +165,16 @@ class Model(AbstractModel):
         """
         unpacked_data = unpack(self.data, self.parameters.total_wavenumbers)
         a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
-        H = adot/a
 
-        phi2pt, phi2ptdt, phi2ptgrad = compute_hartree(phiA, phidotA,
-                                                       phiB, phidotB,
-                                                       self.parameters)
+        (rho, deltarho2, H, adot, Hdot, addot, epsilon, phi0ddot,
+         phi2pt, phi2ptdt, phi2ptgrad) = compute_all(unpacked_data, self.parameters)
 
         # compute 2pt function of Psi
         psi2pt = compute_2ptpsi(psiA, psiB, self.parameters)
 
-        model = self.parameters.model
-        rho = compute_rho(phi0, phi0dot, model)
-
-        if self.parameters.hartree:
-            Hdot = compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad)
-            phi0ddot = compute_phi0ddot(phi0, phi0dot, H, phi2pt, model)
-            deltarho2 = compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, model)
-        else:
-            Hdot = compute_hubbledot(a, phi0dot, 0, 0)
-            phi0ddot = compute_phi0ddot(phi0, phi0dot, H, 0, model)
-            deltarho2 = 0
-
-        addot = a*(Hdot + H*H)
         hubble_violation = compute_hubble_constraint_viol(a, adot, rho, deltarho2)
 
+        model = self.parameters.model
         V = model.potential(phi0)
         Vd = model.dpotential(phi0)
         Vdd = model.ddpotential(phi0)
