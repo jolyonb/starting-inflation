@@ -30,8 +30,9 @@ phi0dot = np.linspace(-0.01, 0.01, 10)
 
 # Specify timing information
 start_time = 0
-end_time = 5000*sqrt(1e-6/infmodel.lamda)
-timestep = 0.5*sqrt(1e-6/infmodel.lamda)
+end_time = 5000 * sqrt(1e-6/infmodel.lamda)
+timestepinfo = [1000, 10]
+# ~steps per efold (inside horizon), ~steps per efold (outside horizon)
 
 run = 0
 start = time.time()
@@ -51,7 +52,7 @@ for x, y in tqdm(list(itertools.product(phi0, phi0dot))):
                                              fn, l1modeson=l1modeson)
 
     # Construct the driver
-    driver = Driver(Model, initial_data, params, start_time, end_time, timestep, debug=debug)
+    driver = Driver(Model, initial_data, params, start_time, end_time, timestepinfo, debug=debug)
 
     # Perform the evolution
     driver.run()
