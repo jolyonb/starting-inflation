@@ -133,13 +133,12 @@ class Model(AbstractModel):
         """
         # Unpack the data
         unpacked_data = unpack(data, self.parameters.total_wavenumbers)
-        _, _, _, phi0dot, _, phidotA, _, _, phidotB, _ = unpacked_data
 
         # Use the equations of motion
-        (adot, addot, epsilon, phi0ddot,
-         phiddotA, psidotA, phiddotB, psidotB) = eoms(unpacked_data,
-                                                      self.parameters,
-                                                      time)
+        (adot, addot, epsilon, phi0dot, phi0ddot, phidotA, phiddotA,
+         psidotA, phidotB, phiddotB, psidotB) = eoms(unpacked_data,
+                                                     self.parameters,
+                                                     time)
 
         # Check for slowroll
         if epsilon < 0.1:

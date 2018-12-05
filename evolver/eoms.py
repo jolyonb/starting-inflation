@@ -23,20 +23,19 @@ def compute_all(unpacked_data, params):
     phi2pt, phi2ptdt, phi2ptgrad = compute_hartree(phiA, phidotA, phiB, phidotB, params)
     deltarho2 = compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, params.model)
 
-    # Compute Hubble
-    H = adot / a
-
     # Compute quantities that depend on Hartree on or off
     if params.hartree:
+        H = adot / a
         Hdot = compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad)
         phi0ddot = compute_phi0ddot(phi0, phi0dot, H, phi2pt, params.model)
     else:
+        H = adot / a
         Hdot = compute_hubbledot(a, phi0dot, 0, 0)
         phi0ddot = compute_phi0ddot(phi0, phi0dot, H, 0, params.model)
 
     # Compute some derivative quantities
     addot = a*(Hdot + H*H)
-    epsilon = slow_roll_epsilon(a, adot, addot)
+    epsilon = slow_roll_epsilon(H, Hdot)
 
     # Return results
     return rho, deltarho2, H, adot, Hdot, addot, epsilon, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad
@@ -74,14 +73,12 @@ def eoms(unpacked_data, params, time=None):
                                        psidotB, phi2pt, params)
 
     # Return results
-    return adot, addot, epsilon, phi0ddot, phiddotA, psidotA, phiddotB, psidotB
+    return (adot, addot, epsilon, phi0dot, phi0ddot,
+            phidotA, phiddotA, psidotA, phidotB, phiddotB, psidotB)
 
-def slow_roll_epsilon(a, adot, addot):
-    """Computes the slow roll parameter epsilon from a, adot and addot"""
-    H = adot / a
-    H2 = H*H
-    Hdot = addot / a - H2
-    return -Hdot / H2
+def slow_roll_epsilon(H, Hdot):
+    """Computes the slow roll parameter epsilon from H and Hdot"""
+    return - Hdot / (H * H)
 
 def N_efolds(a):
     """Computes the number of efolds that have passed given the current scalefactor"""
