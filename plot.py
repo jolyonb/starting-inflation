@@ -105,6 +105,8 @@ def create_cover_sheet(canvas):
     ax.text(0.05, 0.30, r'$N_{\rm e-folds}$ = ' + str(round(N_efolds(a[-1]), 2)))
     ax.text(0.05, 0.25, r'$n_{\rm max}$ = ' + str(round(params.k_modes, 1)))
 
+    # Should add - is Hartree on, and name of the output file
+
     # Hide the ticks (this is an empty plot!)
     ax.tick_params(
         axis='both',
