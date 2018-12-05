@@ -12,11 +12,11 @@ def compute_all(unpacked_data, params):
 
     Arguments:
         * unpacked_data: Tuple containing all data:
-                         (a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
+                         (a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
         * params: The parameters class associated with the data
     """
     # Initialization
-    a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
+    a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
 
     # Compute energies
     rho = compute_rho(phi0, phi0dot, params.model)
@@ -25,15 +25,16 @@ def compute_all(unpacked_data, params):
 
     # Compute quantities that depend on Hartree on or off
     if params.hartree:
-        H = adot / a
+        H = compute_hubble(rho, deltarho2)
         Hdot = compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad)
         phi0ddot = compute_phi0ddot(phi0, phi0dot, H, phi2pt, params.model)
     else:
-        H = adot / a
+        H = compute_hubble(rho, deltarho2)
         Hdot = compute_hubbledot(a, phi0dot, 0, 0)
         phi0ddot = compute_phi0ddot(phi0, phi0dot, H, 0, params.model)
 
     # Compute some derivative quantities
+    adot = a * H
     addot = a*(Hdot + H*H)
     epsilon = slow_roll_epsilon(H, Hdot)
 
@@ -46,7 +47,7 @@ def eoms(unpacked_data, params, time=None):
 
     Arguments:
         * unpacked_data: Tuple containing all data:
-                         (a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
+                         (a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
         * params: The parameters class associated with the data
         * time: The current time (shouldn't be needed for EOMs, but helpful for debug)
 
@@ -54,7 +55,7 @@ def eoms(unpacked_data, params, time=None):
         * (addot, phi0ddot, phiddotA, psidotA, phiddotB, psidotB)
     """
     # Initialization
-    a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
+    a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
 
     # Compute background quantities
     (rho, deltarho2, H, adot, Hdot, addot,
