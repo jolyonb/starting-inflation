@@ -82,6 +82,8 @@ class PlotStyle(Enum):
     LINEAR = 1
     LOG10 = 2
 
+print "testpull/push"
+
 def create_cover_sheet(canvas):
     # Create a plot on the canvas
     ax = canvas.add_subplot(1, 1, 1)
