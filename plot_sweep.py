@@ -55,7 +55,7 @@ plot_data = {
 }
 for file, phi0, phi0dot in data:
     results = load_data(file)
-    details = analyze(results["a"], results["adot"], results["addot"])
+    details = analyze(results["a"], results["epsilon"])
 
     # Store all of the data we wish to plot
     plot_data["phi0"].append(results["phi0"][0])

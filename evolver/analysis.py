@@ -4,15 +4,12 @@ analysis
 Tools to analyze an evolution from the data
 """
 import numpy as np
-from evolver.eoms import slow_roll_epsilon, N_efolds
+from evolver.eoms import N_efolds
 from evolver.initialize import unpack
 
-def analyze(a, adot, addot):
+def analyze(a, epsilon):
     """Analyze an evolution"""
     results = {}
-
-    # First, compute epsilon
-    epsilon = slow_roll_epsilon(a, adot, addot)
 
     # Find the minimum epsilon
     min_eps = np.min(epsilon)
@@ -47,15 +44,15 @@ def load_data(filename):
     results2 = np.array([list(map(float, line.split(", "))) for line in data2]).transpose()
     # Unpack into nicer variables
     t = results[0]
-    a, adot, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpack(results[1:], nummodes)
+    a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpack(results[1:], nummodes)
     (H, Hdot, addot, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad, rho,
-        deltarho2, hubble_violation, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
+        deltarho2, epsilon, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
 
     # Put the data into a container
     fulldata = {
         "t": t,
         "a": a,
-        "adot": adot,
+        "adot": a * H,
         "phi0": phi0,
         "phi0dot": phi0dot,
         "phiA": phiA,
@@ -73,7 +70,7 @@ def load_data(filename):
         "phi2ptgrad": phi2ptgrad,
         "rho": rho,
         "deltarho2": deltarho2,
-        "hubble_violation": hubble_violation,
+        "epsilon": epsilon,
         "V": V,
         "Vd": Vd,
         "Vdd": Vdd,
