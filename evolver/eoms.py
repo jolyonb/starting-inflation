@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Computes the equations of motion associated with a model
@@ -35,7 +34,7 @@ def compute_all(unpacked_data, params):
 
     # Compute some derivative quantities
     adot = a * H
-    addot = a*(Hdot + H*H)
+    addot = a * (Hdot + H * H)
     epsilon = slow_roll_epsilon(H, Hdot)
 
     # Return results
@@ -130,9 +129,9 @@ def compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad):
         * a, phi0dot: Background values
         * phi2ptdt, phi2ptgrad: Perturbed values
 
-    Returns H == -1/(2 M_{pl}^2) [\dot{\phi}_0^2 + 2-pt \dot{\phi} + 2-pt \grad(\phi)/a^2]
+    Returns H == -1/(2 M_{pl}^2) [\dot{\phi}_0^2 + 2-pt \dot{\phi} + 2-pt \grad(\phi)/3a^2]
     """
-    return - 0.5 * (phi0dot * phi0dot + phi2ptdt + phi2ptgrad/(a*a))
+    return - 0.5 * (phi0dot * phi0dot + phi2ptdt + phi2ptgrad/(3*a*a))
 
 def compute_phi0ddot(phi0, phi0dot, H, phi2pt, model):
     """
@@ -242,25 +241,6 @@ def compute_psi_constraint_viol(a, adot, phi0, phi0dot, phiA, phidotA, phiB, phi
 
     # Compute the violation
     return psi - psi_constraint
-
-def compute_hubble_constraint_viol(a, adot, rho, deltarho2):
-    """
-    Compute the constraint violation in Hubble.
-
-    Arguments:
-        * a, adot: Background values
-        * rho, deltarho2: Background and perturbed energy density
-
-    Returns H - Hexpect
-    """
-    # Compute the current Hubble
-    H = adot / a
-
-    # Compute the expected Hubble
-    Hexpect = compute_hubble(rho, deltarho2)
-
-    # Compute the violation
-    return H - Hexpect
 
 def construct_full_modes(fieldA, fieldB, params):
     """

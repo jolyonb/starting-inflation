@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 initialize
@@ -10,9 +9,7 @@ from scipy.special import spherical_jn
 from evolver.besselroots import get_jn_roots
 from evolver.integrator import AbstractModel, AbstractParameters
 from evolver.eoms import (eoms, compute_hubble, compute_initial_psi, compute_hartree,
-                          compute_2ptpsi,
-                          compute_rho, compute_deltarho2, compute_hubble_constraint_viol,
-                          compute_all)
+                          compute_2ptpsi, compute_rho, compute_deltarho2, compute_all)
 
 class Parameters(AbstractParameters):
     """
