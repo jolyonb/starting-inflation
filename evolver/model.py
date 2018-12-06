@@ -2,7 +2,7 @@
 """
 model.py
 
-Defines the model for evolution, built on top of AbstractModel.
+Defines the model for evolution, built on top of AbstractModel
 """
 from math import pi
 from evolver.eoms import eoms, compute_all, compute_2ptpsi
@@ -52,7 +52,7 @@ class Model(AbstractModel):
         (rho, deltarho2, H, adot, Hdot, addot, epsilon,
          phi0ddot, phi2pt, phi2ptdt, phi2ptgrad) = compute_all(unpacked_data, params)
 
-        ratio = phi2pt/(self.parameters['kappa']**2/4/pi**2)
+        ratio = phi2pt/(params.kappa**2/4/pi**2)
 
         with open(self.basefilename + ".info", "w") as f:
             f.write(f"""Evolution Parameters and Initial Conditions
@@ -60,7 +60,7 @@ Number of l=0 modes: {params.k_modes}
 Number of l=1 modes: {params.k_modes - 1}
 Hartree corrections on: {params.hartree}
 R_max: {params.Rmax}
-kappa: {self.parameters['kappa']}
+kappa: {params.kappa}
 Model: {type(params.model).__name__}
 {params.model.info()}
 Initial phi0: {phi0}

@@ -1,18 +1,27 @@
 # -*- coding: utf-8 -*-
 """
+eoms.py
+
 Computes the equations of motion associated with a model
 """
 from math import pi, sqrt
 import numpy as np
 
 class EOMParameters(object):
-    """A class to store all the parameters that are needed for computing EOMs"""
+    """
+    A class to store all the parameters that are needed for computing EOMs,
+    and also for plotting
+    """
     def __init__(self,
                  Rmax,
+                 kappa,
                  k_modes,
+                 total_wavenumbers,
                  hartree,
                  infmodel,
+                 k_grids,
                  k2_grids,
+                 all_wavenumbers,
                  all_wavenumbers2,
                  denom_fac,
                  gaussian_profile,
@@ -20,10 +29,14 @@ class EOMParameters(object):
                  velcoeffs):
         """Save parameters for later computations"""
         self.Rmax = Rmax
+        self.kappa = kappa
         self.k_modes = k_modes
+        self.total_wavenumbers = total_wavenumbers
         self.hartree = hartree
         self.model = infmodel
+        self.k_grids = k_grids
         self.k2_grids = k2_grids
+        self.all_wavenumbers = all_wavenumbers
         self.all_wavenumbers2 = all_wavenumbers2
         self.denom_fac = denom_fac
         self.gaussian_profile = gaussian_profile

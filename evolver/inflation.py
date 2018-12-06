@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """
 inflation.py
 
-Describes an inflationary model.
+Describes an inflationary model
 """
 
 class InflationModel(object):

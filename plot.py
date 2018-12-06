@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+plot.py
+
+Makes a plot of a run
+"""
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
-from run import params
-from evolver.initialize import unpack
+from evolver.utilities import unpack
+from evolver.model import Model
 from math import pi
 from matplotlib.backends.backend_pdf import PdfPages
 from evolver.eoms import N_efolds
@@ -22,6 +27,10 @@ args = parser.parse_args()
 #################
 # Load the data #
 #################
+# Parameters
+model = Model.load(args.filename + ".params")
+params = model.eomparams
+
 # File 1
 with open(args.filename + ".dat") as f:
     data = f.readlines()

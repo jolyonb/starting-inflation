@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """
-analysis
+utilities.py
 
-Tools to analyze an evolution from the data
+Helpful utilities
 """
 import numpy as np
 from evolver.eoms import N_efolds

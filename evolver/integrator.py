@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Integration library built on top of scipy.integrate.ode
+integrator.py
 
-Uses a Driver class and a Model class, built on top of the AbstractModel class
+Integration library built on top of scipy.integrate.ode
 
 This library is agnostic as to the model, which must be implemented as a subclass of
 AbstractModel
@@ -113,7 +113,7 @@ class AbstractModel(object):
     @classmethod
     def load(cls, filename):
         """Instantiate a model from a previously-saved file"""
-        with open(filename) as f:
+        with open(filename, 'rb') as f:
             data = pickle.load(f)
         return cls(data)
 

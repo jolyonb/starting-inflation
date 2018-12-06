@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-initialize
+initialize.py
 
 Initializes parameters for a run
 """
@@ -106,8 +106,8 @@ def create_parameters(package):
     k2_grids = [grid*grid for grid in k_grids]
 
     # Construct a list of all wavenumbers in order, and their squares
-    parameters['all_wavenumbers'] = np.concatenate(k_grids)
-    all_wavenumbers2 = parameters['all_wavenumbers']**2
+    all_wavenumbers = np.concatenate(k_grids)
+    all_wavenumbers2 = all_wavenumbers**2
 
     # Compute Gaussian suppression for wavenumbers
     factor = 2*kappa**2
@@ -150,10 +150,14 @@ def create_parameters(package):
     # Construct EOMParameters #
     ###########################
     parameters['eomparams'] = EOMParameters(Rmax,
+                                            kappa,
                                             num_k_modes,
+                                            parameters['total_wavenumbers'],
                                             parameters['hartree'],
                                             infmodel,
+                                            k_grids,
                                             k2_grids,
+                                            all_wavenumbers,
                                             all_wavenumbers2,
                                             denom_fac,
                                             gaussian_profile,
