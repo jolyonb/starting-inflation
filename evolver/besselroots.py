@@ -1,6 +1,7 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+besselroots.py
+
 Computes roots of spherical Bessel functions recursively
 """
 from math import pi
