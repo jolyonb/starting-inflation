@@ -9,8 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.backends.backend_pdf import PdfPages
 from evolver.model import Model
-from evolver.utilities import load_data
-from evolver.utilities import analyze
+from evolver.utilities import load_data, analyze
 
 ####################################
 # Deal with command line arguments #

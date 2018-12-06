@@ -15,13 +15,12 @@ from evolver.model import Model
 
 # Initialize all settings
 lamda = 1e-9
-filename = "data/newoutput_swp1"
+filename = "data/newoutput_swp"
 hartree = True
 
 # Background fields
 phi0s = np.linspace(20, 40, 3)
 # Minimum phi0dot should be around -0.025, max should be around 0.025
-# phi0dots = np.linspace(-0.025, 0.025, 3)
 phi0dots = np.linspace(-0.01, 0.01, 3)
 
 run = 0
@@ -31,27 +30,32 @@ print("Starting!")
 infofile = open(filename + "-info.txt", "w")
 infofile.write("filename\tphi0\tphi0dot\n")
 
+package = create_package(phi0=None,
+                         phi0dot=None,
+                         infmodel=LambdaPhi4(lamda=lamda),
+                         end_time=5000*sqrt(1e-6/lamda),
+                         basefilename=None,
+                         hartree=hartree,
+                         timestepinfo=[200,10])
+
 for x, y in tqdm(list(itertools.product(phi0s, phi0dots))):
     # Construct the filename
     run += 1
     fn = filename + "-{}".format(run)
     infofile.write("{}\t{}\t{}\n".format(fn, x, y))
     
-    package = create_package(phi0=x,
-                             phi0dot=y,
-                             infmodel=LambdaPhi4(lamda=lamda),
-                             end_time=5000*sqrt(1e-6/lamda),
-                             basefilename=fn,
-                             hartree=hartree,
-                             timestepinfo=[200,10])
+    #Update package
+    package['phi0'] = x
+    package['phi0dot'] = y
+    package['basefilename'] = fn
                              
     parameters = create_parameters(package)
     
-    #create the model
+    #Create the model
     model = Model(parameters)
     model.save(fn + ".params")
     
-    #construct the driver
+    #Construct the driver
     driver = Driver(model)
 
     # Perform the evolution
