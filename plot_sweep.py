@@ -8,7 +8,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.backends.backend_pdf import PdfPages
-from evolver.analysis import load_data, analyze
+from evolver.model import Model
+from evolver.utilities import load_data
+from evolver.utilities import analyze
 
 ####################################
 # Deal with command line arguments #
@@ -55,9 +57,12 @@ plot_data = {
   "deltarho2": [],
   "phi2pt": [],
   "efolds": [],
-  "infl": []
+  "infl": [],
+  "kappa": [],
 }
 for file, phi0, phi0dot in data:
+    model = Model.load(file + ".params")
+    params = model.eomparams
     results = load_data(file)
     details = analyze(results["a"], results["epsilon"])
 
@@ -68,6 +73,7 @@ for file, phi0, phi0dot in data:
     plot_data["rho"].append(results["rho"][0])
     plot_data["deltarho2"].append(results["deltarho2"][0])
     plot_data["phi2pt"].append(results["phi2pt"][0])
+    plot_data["kappa"].append(params.kappa)
     if "efolds" in details:
         plot_data["efolds"].append(details['efolds'])
     else:
@@ -101,9 +107,9 @@ fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
 pdf_pages.savefig(fig)
 #
 fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
-                    plot_data["phi2pt"]/(plot_data["H"]/(2*np.pi))**2,
+                    plot_data["phi2pt"]/(plot_data["kappa"]/(2*np.pi))**2,
                     plot_data["infl"],
-                    r'$<(\delta\phi)^{2}>_{t_{0}}/\frac{H_{0}^{2}}{4\pi^{2}}$')
+                    r'$<(\delta\phi)^{2}>_{t_{0}}/\frac{\kappa^{2}}{4\pi^{2}}$')
 pdf_pages.savefig(fig)
 #
 pdf_pages.close()

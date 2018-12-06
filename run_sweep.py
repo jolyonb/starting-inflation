@@ -9,30 +9,20 @@ import numpy as np
 import itertools
 from tqdm import tqdm
 from evolver.integrator import Driver, Status
-from evolver.initialize import make_initial_data, Model
-from evolver.model import LambdaPhi4
+from evolver.initialize import create_package, create_parameters
+from evolver.inflation import LambdaPhi4
+from evolver.model import Model
 
 # Initialize all settings
-debug = False
-hartree = False
-k_modes = 40
-l1modeson = True
-filename = "data/output"
-
-# Inflation model
-infmodel = LambdaPhi4(lamda=1e-9)
+lamda = 1e-9
+filename = "data/newoutput_swp1"
+hartree = True
 
 # Background fields
-phi0 = np.linspace(20, 40, 10)
+phi0s = np.linspace(20, 40, 3)
 # Minimum phi0dot should be around -0.025, max should be around 0.025
-# phi0dot = np.linspace(-0.025, 0.025, 3)
-phi0dot = np.linspace(-0.01, 0.01, 10)
-
-# Specify timing information
-start_time = 0
-end_time = 5000 * sqrt(1e-6/infmodel.lamda)
-timestepinfo = [10, 10]
-# ~steps per efold (inside horizon), ~steps per efold (outside horizon)
+# phi0dots = np.linspace(-0.025, 0.025, 3)
+phi0dots = np.linspace(-0.01, 0.01, 3)
 
 run = 0
 start = time.time()
@@ -41,18 +31,28 @@ print("Starting!")
 infofile = open(filename + "-info.txt", "w")
 infofile.write("filename\tphi0\tphi0dot\n")
 
-for x, y in tqdm(list(itertools.product(phi0, phi0dot))):
+for x, y in tqdm(list(itertools.product(phi0s, phi0dots))):
     # Construct the filename
     run += 1
     fn = filename + "-{}".format(run)
     infofile.write("{}\t{}\t{}\n".format(fn, x, y))
-
-    # Construct parameters class and initial data
-    params, initial_data = make_initial_data(x, y, k_modes, hartree, infmodel,
-                                             fn, l1modeson=l1modeson)
-
-    # Construct the driver
-    driver = Driver(Model, initial_data, params, start_time, end_time, timestepinfo, debug=debug)
+    
+    package = create_package(phi0=x,
+                             phi0dot=y,
+                             infmodel=LambdaPhi4(lamda=lamda),
+                             end_time=5000*sqrt(1e-6/lamda),
+                             basefilename=fn,
+                             hartree=hartree,
+                             timestepinfo=[200,10])
+                             
+    parameters = create_parameters(package)
+    
+    #create the model
+    model = Model(parameters)
+    model.save(fn + ".params")
+    
+    #construct the driver
+    driver = Driver(model)
 
     # Perform the evolution
     driver.run()
