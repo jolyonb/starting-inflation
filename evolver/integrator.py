@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Integration library built on top of scipy.integrate.ode
@@ -9,8 +8,13 @@ This library is agnostic as to the model, which must be implemented as a subclas
 AbstractModel
 """
 from enum import Enum
+import pickle
 from scipy.integrate import ode
-from evolver.errors import IntegrationError
+
+
+class IntegrationError(Exception):
+    """Raised when an integration error arises"""
+
 
 class Status(Enum):
     """Status of Driver object"""
@@ -22,259 +26,176 @@ class Status(Enum):
 
 
 class AbstractModel(object):
-    """Abstract class that handles integration"""
+    """Abstract class that handles all model and run-depdendent information"""
 
-    def __init__(self, initial_data, parameters, start_time, timestepinfo,
-                 atol=1e-10, rtol=1e-10, separator=", ", debug=False):
+    def __init__(self, run_params):
         """
-        Initialize the integrator
+        Sets up all data for an evolution
 
         Arguments:
-            * initial_data: The initial data for the integration
-            * parameters: Any parameters that the derivatives computation should have
-                          access to
-            * start_time: The initial value for time t
-            * timestepinfo: Any information that compute_timestep needs to compute the time step
-            * atol: Absolute tolerance in integration
-            * rtol: Relative tolerance in integration
-            * separator: Separator to use between fields when outputting data
-            * debug: If True, requests debug output after each integration step
+            * run_params: Dictionary of all initialization information.
 
-        Returns: None
+        run_params can include whatever keys you like. The following keys have
+        meaning for AbstractModel:
+            * initial_data: The initial data for the integration (required)
+            * start_time: The initial value for time t (default 0)
+            * end_time: The maximum value of time t to integrate to (default 100)
+            * atol: Absolute tolerance in integration (default 1e-10)
+            * rtol: Relative tolerance in integration (default 1e-10)
+            * separator: Separator to use between fields when outputting data (default ", ")
         """
-        # Store information
-        self.data = initial_data
-        self.parameters = parameters
-        self.separator = separator
-        self.debug = debug
-        self.timestepinfo = timestepinfo
+        # Defaults
+        self.parameters = {
+            'start_time': 0,
+            'end_time': 100,
+            'atol': 1e-10,
+            'rtol': 1e-10,
+            'separator': ', '
+        }
 
-        # Set up the integrator
-        self.integrator = ode(self.derivatives).set_integrator('dopri5',
-                                                               nsteps=10000,
-                                                               rtol=rtol,
-                                                               atol=atol)
-        self.integrator.set_initial_value(initial_data, start_time)
-        self.integrator.set_solout(self.solout)
+        # Add in new information
+        self.parameters.update(run_params)
 
-    def solout(self, t, data):
+        # Store values that will be used repeatedly
+        self.initial_data = self.parameters['initial_data']
+        self.start_time = self.parameters['start_time']
+        self.end_time = self.parameters['end_time']
+        self.atol = self.parameters['atol']
+        self.rtol = self.parameters['rtol']
+        self.separator = self.parameters['separator']
+
+        # Initialize internal flags
+        self.halt = False
+        self.haltmsg = None
+
+    def begin(self):
+        """A function that is called before evolution begins"""
         raise NotImplementedError()
 
-    @property
-    def time(self):
-        """
-        Returns the current time that the model is at.
-
-        Returns: time
-        """
-        return self.integrator.t
-
-    def step(self, newtime):
-        """
-        Takes a step forwards in time
-
-        Arguments:
-            * newtime: The time value that should be evolved to in this step
-
-        Returns: None
-        """
-        # If debug mode is on, we step slowly through the integration
-        if self.debug:
-            # Initialize parameters
-            stepcount = 0
-            delta = 0
-
-            # Take steps until we get to the desired time
-            while self.time < newtime:
-                # Take a step
-                stepcount += 1
-                last_time = self.time
-                # step=True says to take a single step, which may overshoot newtime
-                results = self.integrator.integrate(newtime, step=True)
-                if not self.integrator.successful():
-                    raise IntegrationError("DOPRI Error Code {}"
-                                           .format(self.integrator.get_return_code()))
-                # Store the last timestep taken
-                delta = self.time - last_time
-
-            # Store result
-            self.data = results
-
-            # Reporting
-            msg = "Integrator: Stepped to t = {} in {} steps, last stepsize was {}"
-            print(msg.format(round(self.time, 5),
-                             stepcount,
-                             round(delta, 5)))
-        else:
-            # If we're not in debug mode, then let scipy have it's head
-            # Take the full step
-            # relax=True says to let the step overshoot the end time
-            results = self.integrator.integrate(newtime, relax=True)
-            if not self.integrator.successful():
-                raise IntegrationError("DOPRI Error Code {}"
-                                       .format(self.integrator.get_return_code()))
-
-            # Store result
-            self.data = results
-
-    def write_data(self):
-        """
-        Writes the current data to file
-
-        Returns: None
-        """
-        sep = self.separator
-        self.parameters.f.write(str(self.time) + sep + sep.join(map(str, self.data)) + "\n")
+    def cleanup(self):
+        """A function that is called after evolution finishes"""
+        raise NotImplementedError()
 
     def derivatives(self, time, data):
-        """
-        Computes derivatives for evolution
-
-        Arguments:
-            * time: The current time
-            * data: The current data as a numpy array
-
-        Returns:
-            * derivatives: The derivatives given the current data and time. Must be the
-                           same size numpy array as data.
-
-        Note that this method has access to self.parameters
-        Must be implemented by a model
-        """
+        """Computes derivatives for evolution"""
         raise NotImplementedError()
 
-    def compute_timestep(self):
+    def compute_timestep(self, time, data):
         """Compute the desired timestep at this point in the evolution"""
         raise NotImplementedError()
 
-
-class AbstractParameters(object):
-    """Abstract class that handles file stuff"""
-
-    def open_file(self):
+    def solout(self, time, data):
         """
-        Opens the file handle to write to
-
-        Returns: None
+        A function that is called after every internal timestep.
+        If this returns -1, it terminates the evolution.
         """
-        self.f = open(self.filename + ".dat", "w")
-        self.f2 = open(self.filename + ".dat2", "w")
-        self.f3 = open(self.filename + ".info", "w")
+        if self.halt:
+            return -1
+        return 0
 
-    def close_file(self):
+    def write_data(self, time, data):
         """
-        Closes the file handles
-
-        Returns: None
-        """
-        self.f.close()
-        self.f2.close()
-        self.f3.close()
-
-    def write_info(self, data):
-        """
-        Write initialization info to file
-
-        Returns: None
+        A function that is called between timesteps (and also at the
+        start/end of integration), when data is ready for writing.
         """
         raise NotImplementedError()
 
-    def write_info_line(self, line):
-        """Writes a line to the information file"""
-        self.f3.write(line + "\n")
+    def format_data(self, time, data):
+        """Format the current data for output"""
+        return (str(time) + self.separator
+                + self.separator.join(map(str, data)) + "\n")
+
+    def save(self, filename):
+        """Save this model to file (using pickle)"""
+        with open(filename, 'wb') as f:
+            pickle.dump(self.parameters, f)
+
+    @classmethod
+    def load(cls, filename):
+        """Instantiate a model from a previously-saved file"""
+        with open(filename) as f:
+            data = pickle.load(f)
+        return cls(data)
 
 
 class Driver(object):
-    """
-    Sets up and runs the evolution
-    """
+    """Sets up and runs the evolution"""
 
-    def __init__(self, Model, initial_data, parameters, start_time, end_time, timestepinfo,
-                 atol=1e-10, rtol=1e-10, separator=", ", debug=False):
+    def __init__(self, model):
         """
         Set parameters for driving the evolution
 
         Arguments:
-            * Model: The model class to use in integration, which should subclass AbstractModel
-            * initial_data: The initial data for the integration
-            * parameters: Any parameters that the derivatives computation should have
-                          access to
-            * start_time: The initial value for time t
-            * end_time: The final value of time to evolve to
-            * timestepinfo: Information required by the model for compute_timestep
-            * atol: Absolute tolerance in integration
-            * rtol: Relative tolerance in integration
-            * separator: Separator to use between fields when outputting data
-            * debug: If True, requests debug output after each integration step
-
-        Returns: None
+            * model: An AbstractModel subclass instance
         """
         self.status = Status.Initializing
-
-        # Save parameters
-        self.start_time = start_time
-        self.end_time = end_time
-        self.debug = debug
-
-        # Initialize the data objects
-        self.data = Model(initial_data=initial_data,
-                          parameters=parameters,
-                          start_time=start_time,
-                          timestepinfo=timestepinfo,
-                          atol=atol,
-                          rtol=rtol,
-                          separator=separator,
-                          debug=debug)
-
-        # Ready to roll
         self.error_msg = ""
+        self.model = model
+
+        # Initialize the integrator
+        self.data = model.initial_data
+        self.integrator = ode(model.derivatives)
+        self.integrator.set_integrator('dopri5',
+                                       nsteps=10000,
+                                       rtol=model.rtol,
+                                       atol=model.atol)
+        self.integrator.set_initial_value(model.initial_data, model.start_time)
+        self.integrator.set_solout(model.solout)
+
         self.status = Status.OK
+
+    @property
+    def time(self):
+        """Returns the current time that the integrator is at"""
+        return self.integrator.t
 
     def run(self):
         """
         Runs the evolution
 
-        Returns: None
-
-        The resulting status is stored in self.status. If it stores Status.IntegrationError,
-        the error message is available through self.error_msg.
+        The resulting status is stored in self.status.
+        If it stores Status.IntegrationError, the error message
+        is available through self.error_msg.
         """
         # Make sure we're ready to roll
         if self.status != Status.OK:
             raise ValueError("Cannot begin evolution as status is not OK.")
 
-        # Write the initial conditions
-        self.data.parameters.open_file()
-        self.data.parameters.write_info(self.data.data)
-        self.data.write_data()
-        self.data.write_extra_data()
+        # Initialization
+        self.model.begin()
+
+        # Write initial data
+        self.model.write_data(self.time, self.data)
 
         # Integration loop
-        newtime = self.data.time
+        newtime = self.time
         while True:
             # Check to see if we're finished
-            if newtime >= self.end_time:
+            if newtime >= self.model.end_time:
                 self.status = Status.Finished
                 break
-            elif self.data.parameters.halt:
+            elif self.model.halt:
                 self.status = Status.Terminated
-                self.error_msg = self.data.parameters.haltmsg
+                self.error_msg = self.model.haltmsg
                 break
 
             # Construct the time to integrate to
-            newtime = self.data.time + self.data.compute_timestep()
+            newtime = self.time + self.model.compute_timestep(self.time, self.data)
 
             # Take a step to newtime
             try:
-                self.data.step(newtime)
+                results = self.integrator.integrate(newtime, relax=True)
+                if not self.integrator.successful():
+                    raise IntegrationError("DOPRI Error Code {}"
+                                           .format(self.integrator.get_return_code()))
+                self.data = results
             except IntegrationError as e:
                 self.status = Status.IntegrationError
                 self.error_msg = e.args[0]
                 break
 
             # Write the data
-            self.data.write_data()
-            self.data.write_extra_data()
+            self.model.write_data(self.time, self.data)
 
-        # Close the files before returning
-        self.data.parameters.close_file()
+        # Clean up
+        self.model.cleanup()

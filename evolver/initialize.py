@@ -7,300 +7,178 @@ Initializes parameters for a run
 import numpy as np
 from scipy.special import spherical_jn
 from evolver.besselroots import get_jn_roots
-from evolver.integrator import AbstractModel, AbstractParameters
-from evolver.eoms import (eoms, compute_hubble, compute_initial_psi, compute_hartree,
-                          compute_2ptpsi, compute_rho, compute_deltarho2, compute_all)
+from evolver.utilities import pack
+from evolver.eoms import (compute_hubble, compute_initial_psi, compute_hartree,
+                          compute_rho, compute_deltarho2, EOMParameters)
 
-class Parameters(AbstractParameters):
+def create_package(phi0,
+                   phi0dot,
+                   infmodel,
+                   end_time,
+                   basefilename,
+                   num_k_modes=40,
+                   hartree=True,
+                   Rmaxfactor=2,
+                   kappafactor=20,
+                   l1modeson=True,
+                   perform_run=True,
+                   **kwargs):
     """
-    Stores all settings for the evolution, along with the quantities computed from them.
-    """
-    def __init__(self, Rmax, k_modes, hartree, model, kappa, filename):
-        """
-        Construct grids based on the settings
+    Packages all the settings that need to be set for a run into a dictionary.
+    This package can then be initialized using create_parameters.
 
-        Arguments:
-            * Rmax: The domain boundary (called R in the notes)
-            * k_modes: This is the number of k modes we will use for ell = 0
-            * hartree: Whether or not to compute Hartree corrections
-            * model: InflationModel class
-            * kappa: Regularization wavenumber
-            * filename: The output file to write to
-        """
-        # Store the basic values
-        self.Rmax = Rmax
-        self.k_modes = k_modes
-        self.hartree = hartree
-        self.model = model
-        self.kappa = kappa
-        self.filename = filename
-        self.halt = False
-        self.haltmsg = ""
+    A package can be used multiple times, and can be easily modified to
+    provide different initial conditions.
 
-        # Initialize evolution
-        self.slowroll = False
-
-        # Set up the wavenumber grids
-        self.k_grids = get_jn_roots(1, self.k_modes)
-        assert len(self.k_grids[0]) == k_modes
-        assert len(self.k_grids[1]) == k_modes - 1
-
-        # Iterate through all wavenumbers, dividing by Rmax to turn the roots
-        # into wavenumbers
-        for ell in range(2):
-            self.k_grids[ell] /= Rmax
-
-        # Construct wavenumbers squared
-        self.k2_grids = [grid*grid for grid in self.k_grids]
-
-        # Compute the normalizations associated with each wavenumber
-        self.normalizations = [None for ell in range(2)]
-        factor = np.sqrt(2) / Rmax**1.5
-        for ell in range(2):
-            self.normalizations[ell] = factor/np.abs(spherical_jn(ell+1, self.k_grids[ell] * Rmax))
-
-        # Compute 1 / |j_{ell + 1}(k R)|^2, which we'll need for gradient Hartree corrections
-        self.denom_fac = [None for ell in range(2)]
-        for ell in range(2):
-            self.denom_fac[ell] = 1 / np.abs(spherical_jn(ell+1, self.k_grids[ell] * Rmax))**2
-
-        # Make a tuple storing the number of wavenumbers for each ell
-        self.num_wavenumbers = tuple(len(self.k_grids[i]) for i in range(2))
-
-        # Construct the total number of wavenumbers
-        self.total_wavenumbers = sum(self.num_wavenumbers)
-
-        # Construct a list of all wavenumbers in order
-        self.all_wavenumbers = np.concatenate(self.k_grids)
-        self.all_wavenumbers2 = self.all_wavenumbers**2
-
-        # Compute Gaussian suppression for wavenumbers
-        factor = kappa*kappa*2
-        self.gaussian_profile = [
-            np.exp(-self.k_grids[0]*self.k_grids[0]/factor),
-            np.exp(-self.k_grids[1]*self.k_grids[1]/factor)
-        ]
-
-    def write_info(self, data):
-        """
-        Writes initialization info to file.
-        """
-        unpacked_data = unpack(data, self.total_wavenumbers)
-        a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
-
-        (rho, deltarho2, H, adot, Hdot, addot, epsilon,
-         phi0ddot, phi2pt, phi2ptdt, phi2ptgrad) = compute_all(unpacked_data, self)
-
-        ratio = phi2pt/(self.kappa**2/4/np.pi**2)
-
-        self.write_info_line("Evolution Information")
-        self.write_info_line("Number of l=0 modes: {}".format(self.k_modes))
-        self.write_info_line("Number of l=1 modes: {}".format(self.k_modes - 1))
-        self.write_info_line("Hartree corrections on: {}".format(self.hartree))
-        self.write_info_line("R_max: {}".format(self.Rmax))
-        self.write_info_line("kappa: {}".format(self.kappa))
-        self.write_info_line("Model: {}".format(type(self.model).__name__))
-        self.write_info_line(self.model.info())
-
-        self.write_info_line("Initial phi0: {}".format(phi0))
-        self.write_info_line("Initial phi0dot: {}".format(phi0dot))
-        self.write_info_line("Initial H: {}".format(H))
-
-        self.write_info_line("Initial rho: {}".format(rho))
-        self.write_info_line("Initial deltarho2: {}".format(deltarho2))
-        self.write_info_line("deltarho2/rho: {}".format(deltarho2/rho))
-
-        self.write_info_line("Initial <deltaphi^2>: {}".format(phi2pt))
-        self.write_info_line(r"<deltaphi^2> / (H^2 \bar\kappa^2 / (4 pi^2)): {}".format(ratio))
-
-class Model(AbstractModel):
-    """The model to be integrated"""
-
-    def derivatives(self, time, data):
-        """
-        Computes derivatives for evolution
-
-        Arguments:
-            * time: The current time
-            * data: The current data as a numpy array
-
-        Returns:
-            * derivatives: The derivatives given the current data and time. Must be the
-                           same size numpy array as data.
-        """
-        # Unpack the data
-        unpacked_data = unpack(data, self.parameters.total_wavenumbers)
-
-        # Use the equations of motion
-        (adot, addot, epsilon, phi0dot, phi0ddot, phidotA, phiddotA,
-         psidotA, phidotB, phiddotB, psidotB) = eoms(unpacked_data,
-                                                     self.parameters,
-                                                     time)
-
-        # Check for slowroll
-        if epsilon < 0.1:
-            self.parameters.slowroll = True
-        elif self.parameters.slowroll and epsilon >= 1:
-            self.parameters.halt = True
-            self.parameters.haltmsg = "Inflation has ended"
-
-        # Combine everything into a single array
-        return eqpack(adot, phi0dot, phi0ddot,
-                      phidotA, phiddotA, psidotA,
-                      phidotB, phiddotB, psidotB)
-
-    def solout(self, t, data):
-        if self.parameters.halt:
-            return -1
-        return 0
-
-    def write_extra_data(self):
-        """
-        Writes auxiliary data to the second output file
-
-        Returns: None
-        """
-        unpacked_data = unpack(self.data, self.parameters.total_wavenumbers)
-        a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
-
-        (rho, deltarho2, H, adot, Hdot, addot, epsilon, phi0ddot,
-         phi2pt, phi2ptdt, phi2ptgrad) = compute_all(unpacked_data, self.parameters)
-
-        # compute 2pt function of Psi
-        psi2pt = compute_2ptpsi(psiA, psiB, self.parameters)
-
-        model = self.parameters.model
-        V = model.potential(phi0)
-        Vd = model.dpotential(phi0)
-        Vdd = model.ddpotential(phi0)
-        Vddd = model.dddpotential(phi0)
-        Vdddd = model.ddddpotential(phi0)
-
-        extradata = [H, Hdot, addot, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad, psi2pt,
-                     rho, deltarho2, epsilon, V, Vd, Vdd, Vddd, Vdddd]
-
-        sep = self.separator
-        self.parameters.f2.write(str(self.time) + sep + sep.join(map(str, extradata)) + "\n")
-
-    def compute_timestep(self):
-        """Computes the time step at this point in the evolution"""
-        factor1, factor2 = self.timestepinfo
-        # We want to take factor timesteps in each e-fold, roughly
-        # Delta t = Delta a / adot
-        # Change in a we want to see is 1 efold / factor
-        # 1 efold = e * a
-        # Delta a = (e-1) * a / factor
-        a = self.data[0]
-        unpacked_data = unpack(self.data, self.parameters.total_wavenumbers)
-        _, _, H, adot, _, _, _, _, _, _, _ = compute_all(unpacked_data, self.parameters)
-
-        # Get the shortest wavelength
-        lamda = 2*np.pi/self.parameters.k_grids[0][-1]
-        # Inflate it
-        lamda *= a
-        # Get the horizon scale
-        horizon = 1/H
-        # Are we inside or outside the horizon?
-        inside = False if lamda > 10 * horizon else True
-        if inside:
-            factor = factor1
-        else:
-            factor = factor2
-
-        # Compute the timestep
-        timestep = 1.71828 * a / factor / adot
-        # print(timestep, 1.0 * np.sqrt(1e-6/self.parameters.model.lamda))
-        return timestep
-        # Old code:
-        # return 1.0 * np.sqrt(1e-6/self.parameters.model.lamda)
-
-def make_initial_data(phi0, phi0dot, k_modes, hartree, model,
-                      filename, Rmaxfactor=2, kappafactor=20, l1modeson=True):
-    """
-    Constructs parameters and initial data for the evolution
+    Some arguments are mandatory, while others are optional. Any extra
+    package settings can be specified by keyword arguments.
 
     Arguments:
         * phi0: Starting value for the background field
         * phi0dot: Starting value for the time derivative of the background field
-        * k_modes: This is the number of k modes we will use for ell = 0
+        * infmodel: Instance of an InflationModel class
+        * end_time: Maximum time to evolve to
+        * basefilename: The base name of the desired output file
+                        (different extensions will be added)
+        * num_k_modes: This is the number of k modes we will use for ell = 0
         * hartree: Whether or not to compute Hartree corrections
-        * model: An initialized InflationModel class
-        * filename: The output file to write to
-        * filename2: The output file for auxiliary variables
         * Rmaxfactor: The factor by which to increase Rmax from the initial Hubble radius
         * kappafactor: Sets the scale of the regulator in terms of Hubble
         * l1modeson: If set to False, initializes all l=1 modes with zero coefficients
-
-    Returns: (initial_data, params)
-        * initial_data: An numpy array containing all of the initial data for the simulation
-        * params: Parameters class containing all of the parameters for the simulation
-
-    The data in initial_data is stored as:
-    [a, adot, phi0, phi0dot, phi^A, phidot^A, psi^A, phi^B, phidot^B, psi^B]
-    where the last six entries are vectors with 2n-1 entries, where n is the number of
-    ell = 0 entries. Note that A modes begin with unit position, and B modes begin with
-    unit velocity.
+        * perform_run: Do we evolve, pr just set everything up?
     """
-    # # Seed the random number generator if needed
-    # if seed is None and randomize:
-    #     seed = random.randrange(sys.maxsize)
-    # elif not randomize:
-    #     seed = None
+    package = {
+        'phi0': phi0,
+        'phi0dot': phi0dot,
+        'infmodel': infmodel,
+        'end_time': end_time,
+        'basefilename': basefilename,
+        'num_k_modes': num_k_modes,
+        'hartree': hartree,
+        'Rmaxfactor': Rmaxfactor,
+        'kappafactor': kappafactor,
+        'l1modeson': l1modeson,
+        'perform_run': perform_run,
+        **kwargs
+    }
+    return package
 
-    # Estimate Hubble radius from background quantities
-    rho = compute_rho(phi0, phi0dot, model)
+def create_parameters(package):
+    """
+    Takes in a package and generates the parameters dictionary required by
+    a Model. This involves constructing grids and initial conditions. Once this
+    dictionary has been generated, it should not be modified, as doing so
+    may cause inconsistencies.
+    """
+    # Start by copying everything in the package
+    parameters = {**package}
+
+    #########################
+    # Background quantities #
+    #########################
+    phi0 = parameters['phi0']
+    phi0dot = parameters['phi0dot']
+    infmodel = parameters['infmodel']
+    rho = compute_rho(phi0, phi0dot, infmodel)
+    # Estimate Hubble
     H0 = compute_hubble(rho, 0)
 
     # Construct Rmax and kappa
-    Rmax = Rmaxfactor / H0
-    kappa = kappafactor * H0
+    parameters['Rmax'] = Rmax = parameters['Rmaxfactor'] / H0
+    parameters['kappa'] = kappa = parameters['kappafactor'] * H0
 
-    # Construct the parameters
-    params = Parameters(Rmax, k_modes, hartree, model, kappa, filename)
+    ####################
+    # Wavenumber grids #
+    ####################
+    num_k_modes = parameters['num_k_modes']
+    k_grids = get_jn_roots(1, num_k_modes)
 
-    # How many fields do we have?
-    numfields = params.total_wavenumbers
+    # Iterate through all wavenumbers, dividing by Rmax
+    # to turn the roots into wavenumbers
+    for ell in range(2):
+        k_grids[ell] /= Rmax
+    parameters['k_grids'] = k_grids
 
-    # Construct the initial conditions
+    # Make a tuple storing the number of wavenumbers for each ell
+    parameters['total_wavenumbers'] = total_wavenumbers = 2 * num_k_modes - 1
 
-    # We just take the initial data for the background field values from the arguments
-    # phi0 = phi0
-    # phi0dot = phi0dot
+    # Construct wavenumbers squared
+    k2_grids = [grid*grid for grid in k_grids]
 
-    # The starting value of the scale factor
-    a = 1
+    # Construct a list of all wavenumbers in order, and their squares
+    parameters['all_wavenumbers'] = np.concatenate(k_grids)
+    all_wavenumbers2 = parameters['all_wavenumbers']**2
 
-    # Generate coefficients for all of the modes
+    # Compute Gaussian suppression for wavenumbers
+    factor = 2*kappa**2
+    gaussian_profile = [
+        np.exp(-k_grids[0]**2 / factor),
+        np.exp(-k_grids[1]**2 / factor)
+    ]
+
+    # Compute the normalizations associated with each wavenumber
+    normalizations = [None for ell in range(2)]
+    factor = np.sqrt(2) / Rmax**1.5
+    for ell in range(2):
+        normalizations[ell] = factor/np.abs(spherical_jn(ell+1, k_grids[ell] * Rmax))
+    parameters['normalizations'] = normalizations
+
+    # Compute 1 / |j_{ell + 1}(k R)|^2, which we'll need for gradient Hartree corrections
+    denom_fac = [None for ell in range(2)]
+    for ell in range(2):
+        denom_fac[ell] = 1 / np.abs(spherical_jn(ell+1, k_grids[ell] * Rmax))**2
+
+    ###############################
+    # Construct mode coefficients #
+    ###############################
     poscoeffs = [None, [None]*3]
     velcoeffs = [None, [None]*3]
 
     # Bunch-Davies initial conditions
-    poscoeffs[0] = 1 / np.sqrt(2*params.k_grids[0])
-    velcoeffs[0] = np.sqrt(params.k_grids[0] / 2) * (-1j - H0 / params.k_grids[0])
-    if l1modeson:
+    poscoeffs[0] = 1 / np.sqrt(2*k_grids[0])
+    velcoeffs[0] = np.sqrt(k_grids[0] / 2) * (-1j - H0 / k_grids[0])
+    if parameters['l1modeson']:
         for i in range(3):
-            poscoeffs[1][i] = 1 / np.sqrt(2*params.k_grids[1])
-            velcoeffs[1][i] = np.sqrt(params.k_grids[1] / 2) * (-1j - H0 / params.k_grids[1])
+            poscoeffs[1][i] = 1 / np.sqrt(2*k_grids[1])
+            velcoeffs[1][i] = np.sqrt(k_grids[1] / 2) * (-1j - H0 / k_grids[1])
     else:
         for i in range(3):
-            poscoeffs[1][i] = np.zeros_like(params.k_grids[1])
-            velcoeffs[1][i] = np.zeros_like(params.k_grids[1])
+            poscoeffs[1][i] = np.zeros_like(k_grids[1])
+            velcoeffs[1][i] = np.zeros_like(k_grids[1])
 
-    # Attach these to params
-    params.poscoeffs = poscoeffs
-    params.velcoeffs = velcoeffs
+    ###########################
+    # Construct EOMParameters #
+    ###########################
+    parameters['eomparams'] = EOMParameters(Rmax,
+                                            num_k_modes,
+                                            parameters['hartree'],
+                                            infmodel,
+                                            k2_grids,
+                                            all_wavenumbers2,
+                                            denom_fac,
+                                            gaussian_profile,
+                                            poscoeffs,
+                                            velcoeffs)
 
-    # Everything else to initialize is for the fields phi_{nlm}
-    # Go and initialize the fields
-    phiA = np.ones(numfields)
-    phidotA = np.zeros(numfields)
-    phiB = np.zeros(numfields)
-    phidotB = np.ones(numfields)
+    ################################
+    # Construct Initial Conditions #
+    ################################
+    # The starting value of the scale factor
+    a = 1
+    # phi0 and phi0dot have been obtained already
+
+    # Initialize the fields phi_{nlm}
+    phiA = np.ones(total_wavenumbers)
+    phidotA = np.zeros(total_wavenumbers)
+    phiB = np.zeros(total_wavenumbers)
+    phidotB = np.ones(total_wavenumbers)
 
     # Compute the Hartree corrections
-    if hartree:
-        phi2pt, phi2ptdt, phi2ptgrad = compute_hartree(phiA, phidotA, phiB, phidotB, params)
-        deltarho2 = compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, model)
+    if parameters['hartree']:
+        phi2pt, phi2ptdt, phi2ptgrad = compute_hartree(phiA, phidotA,
+                                                       phiB, phidotB,
+                                                       parameters['eomparams'])
+        deltarho2 = compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, infmodel)
     else:
         phi2pt, phi2ptdt, phi2ptgrad = (0, 0, 0)
         deltarho2 = 0
@@ -311,75 +189,13 @@ def make_initial_data(phi0, phi0dot, k_modes, hartree, model,
     # Now compute the initial values for the psi fields
     psiA, psiB = compute_initial_psi(a, adot, phi0, phi0dot,
                                      phiA, phidotA, phiB, phidotB,
-                                     phi2pt, phi2ptdt, phi2ptgrad, params)
+                                     phi2pt, phi2ptdt, phi2ptgrad,
+                                     parameters['eomparams'])
 
     # Pack all the initial data together
-    data = pack(a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
+    parameters['initial_data'] = pack(a, phi0, phi0dot,
+                                      phiA, phidotA, psiA,
+                                      phiB, phidotB, psiB)
 
-    # Return the data
-    return params, data
-
-def pack(a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB):
-    """
-    Pack all field values into a data array for integration.
-
-    Arguments:
-        * a, phi0, phi0dot: Respective values to pack
-        * phiA, phidotA, psiA, phiB, phidotB, psiB: Arrays of values for each wavenumber
-
-    Returns:
-        * data: A numpy array containing all data
-    """
-    background = np.array([a, phi0, phi0dot])
-    return np.concatenate((background, phiA, phidotA, psiA, phiB, phidotB, psiB))
-
-def eqpack(adot, phi0dot, phi0ddot,
-           phidotA, phiddotA, psidotA,
-           phidotB, phiddotB, psidotB):
-    """
-    Pack all field values into a data array for integration.
-
-    Arguments:
-        * adot, phi0dot, phi0ddot: Respective values to pack
-        * phidotA, phiddotA, psidotA,
-          phidotB, phiddotB, psidotB: Arrays of values for each wavenumber
-
-    Returns:
-        * data: A numpy array containing all data
-    """
-    background = np.array([adot, phi0dot, phi0ddot])
-    return np.concatenate((background, phidotA, phiddotA, psidotA,
-                           phidotB, phiddotB, psidotB))
-
-def unpack(data, total_wavenumbers):
-    """
-    Unpack field values from a data array into a meaningful data structure.
-    This reverses the operations performed in pack.
-
-    Arguments:
-        * data: The full array of all fields, their derivatives, and auxiliary values
-        * total_wavenumbers: The total number of modes being packed/unpacked
-
-    Returns:
-        * (a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
-          where these quantities are as initialized in make_initial_data
-    """
-    # Grab a, phi0 and phi0dot
-    a = data[0]
-    phi0 = data[1]
-    phi0dot = data[2]
-
-    # How many fields do we have here?
-    numfields = total_wavenumbers
-
-    # Unpack all the data
-    fields = data[3:]
-    phiA = fields[0:numfields]
-    phidotA = fields[numfields:2*numfields]
-    psiA = fields[2*numfields:3*numfields]
-    phiB = fields[3*numfields:4*numfields]
-    phidotB = fields[4*numfields:5*numfields]
-    psiB = fields[5*numfields:6*numfields]
-
-    # Return the results
-    return a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB
+    # Return everything
+    return parameters

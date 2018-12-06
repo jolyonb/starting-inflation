@@ -5,7 +5,53 @@ Tools to analyze an evolution from the data
 """
 import numpy as np
 from evolver.eoms import N_efolds
-from evolver.initialize import unpack
+
+def pack(a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB):
+    """
+    Pack all field values into a data array for integration.
+
+    Arguments:
+        * a, phi0, phi0dot: Respective values to pack
+        * phiA, phidotA, psiA, phiB, phidotB, psiB: Arrays of values for each wavenumber
+
+    Returns:
+        * data: A numpy array containing all data
+    """
+    background = np.array([a, phi0, phi0dot])
+    return np.concatenate((background, phiA, phidotA, psiA, phiB, phidotB, psiB))
+
+def unpack(data, total_wavenumbers):
+    """
+    Unpack field values from a data array into a meaningful data structure.
+    This reverses the operations performed in pack.
+
+    Arguments:
+        * data: The full array of all fields, their derivatives, and auxiliary values
+        * total_wavenumbers: The total number of modes being packed/unpacked
+
+    Returns:
+        * (a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
+          where these quantities are as initialized in make_initial_data
+    """
+    # Grab a, phi0 and phi0dot
+    a = data[0]
+    phi0 = data[1]
+    phi0dot = data[2]
+
+    # How many fields do we have here?
+    numfields = total_wavenumbers
+
+    # Unpack all the data
+    fields = data[3:]
+    phiA = fields[0:numfields]
+    phidotA = fields[numfields:2*numfields]
+    psiA = fields[2*numfields:3*numfields]
+    phiB = fields[3*numfields:4*numfields]
+    phidotB = fields[4*numfields:5*numfields]
+    psiB = fields[5*numfields:6*numfields]
+
+    # Return the results
+    return a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB
 
 def analyze(a, epsilon):
     """Analyze an evolution"""

@@ -5,6 +5,32 @@ Computes the equations of motion associated with a model
 from math import pi, sqrt
 import numpy as np
 
+class EOMParameters(object):
+    """A class to store all the parameters that are needed for computing EOMs"""
+    def __init__(self,
+                 Rmax,
+                 k_modes,
+                 hartree,
+                 infmodel,
+                 k2_grids,
+                 all_wavenumbers2,
+                 denom_fac,
+                 gaussian_profile,
+                 poscoeffs,
+                 velcoeffs):
+        """Save parameters for later computations"""
+        self.Rmax = Rmax
+        self.k_modes = k_modes
+        self.hartree = hartree
+        self.model = infmodel
+        self.k2_grids = k2_grids
+        self.all_wavenumbers2 = all_wavenumbers2
+        self.denom_fac = denom_fac
+        self.gaussian_profile = gaussian_profile
+        self.poscoeffs = poscoeffs
+        self.velcoeffs = velcoeffs
+
+
 def compute_all(unpacked_data, params):
     """
     Routine to compute all quantities of interest
@@ -12,7 +38,7 @@ def compute_all(unpacked_data, params):
     Arguments:
         * unpacked_data: Tuple containing all data:
                          (a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
-        * params: The parameters class associated with the data
+        * params: EOMParameters object
     """
     # Initialization
     a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
@@ -47,11 +73,11 @@ def eoms(unpacked_data, params, time=None):
     Arguments:
         * unpacked_data: Tuple containing all data:
                          (a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB)
-        * params: The parameters class associated with the data
+        * params: EOMParameters object
         * time: The current time (shouldn't be needed for EOMs, but helpful for debug)
 
     Returns a tuple of second derivatives:
-        * (addot, phi0ddot, phiddotA, psidotA, phiddotB, psidotB)
+        * (adot, phi0ddot, phiddotA, psidotA, phiddotB, psidotB)
     """
     # Initialization
     a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
@@ -73,7 +99,7 @@ def eoms(unpacked_data, params, time=None):
                                        psidotB, phi2pt, params)
 
     # Return results
-    return (adot, addot, epsilon, phi0dot, phi0ddot,
+    return (adot, epsilon, phi0dot, phi0ddot,
             phidotA, phiddotA, psidotA, phidotB, phiddotB, psidotB)
 
 def slow_roll_epsilon(H, Hdot):
@@ -167,7 +193,7 @@ def compute_perturb_phiddot(phi0, phi0dot, a, H, phi, phidot, psi, psidot, phi2p
     Arguments:
         * phi0, phi0dot, a, H: Background values
         * phi, phidot, psi, psidot, phi2pt: Perturbed values
-        * params: Parameters class
+        * params: EOMParameters object
 
     Returns phiddot == -3H \dot{\phi} - [k^2/a^2 + V''(\phi_0) + 1/2 V''''(\phi_0) <\phi^2>] \phi
                        - 2 [V'(\phi_0) + 1/2 V'''(\phi_0) <\phi^2>] psi + 4 \dot{\phi}_0 \dot{\psi}
@@ -189,7 +215,7 @@ def compute_initial_psi(a, adot, phi0, phi0dot,
         * a, adot, phi0, phi0dot: Background values
         * phiA, phidotA, phiB, phidotB: Perturbed values
         * phi2pt, phi2ptdt, phi2ptgrad: 2-point values
-        * params: Parameters class
+        * params: EOMParameters object
 
     Returns a tuple:
         * (psiA, psiB)
@@ -219,7 +245,7 @@ def compute_psi_constraint_viol(a, adot, phi0, phi0dot, phiA, phidotA, phiB, phi
         * a, adot, phi0, phi0dot: Background values
         * phiA, phidotA, phiB, phidotB, psiA, psiB: Perturbed values
         * phi2pt, phi2ptdt, phi2ptgrad: 2-point values
-        * params: Parameters class
+        * params: EOMParameters object
 
     Returns a tuple:
         * (psiA - psiAconstraint, psiB - psiBconstraint)
@@ -245,11 +271,11 @@ def compute_psi_constraint_viol(a, adot, phi0, phi0dot, phiA, phidotA, phiB, phi
 def construct_full_modes(fieldA, fieldB, params):
     """
     Based on fieldA and fieldB, construct the full version of the fields, using the
-    coefficients in params. Works for phi and psi.
+    coefficients in params. Works for phi/phidot/psi.
 
     Arguments:
         * fieldA, fieldB: The field values
-        * params: Parameters class
+        * params: EOMParameters object
 
     Returns: A list of arrays of the full (complex) modes for each k
         * [field0, field1[0:2]]
@@ -272,7 +298,7 @@ def compute_hartree(phiA, phidotA, phiB, phidotB, params):
     Arguments:
         * phiA, phidotA, phiB, phidotB: The field values including coefficients, split
                                         into lists by l values
-        * params: Parameters class
+        * params: EOMParameters object
 
     Returns: A tuple
         * (phi2pt, phi2ptdt, phi2ptgrad)
@@ -296,7 +322,7 @@ def compute_2ptpsi(psiA, psiB, params):
     Arguments:
         * psiA, psiB: The field values including coefficients, split
                       into lists by l values
-        * params: Parameters class
+        * params: EOMParameters object
 
     Returns: psi2pt
     """
@@ -315,7 +341,7 @@ def compute_2ptdt(fullphidot0, params):
 
     Arguments:
         * fullphidot0: Array of all phidot_k values for ell = 0
-        * params: Parameters class
+        * params: EOMParameters object
 
     Returns <(\delta \dot{\hat{\phi}})^2>
     == \pi/(2 R^3) \sum_n n^2 |\dot{\phi}|^2 e^{-k^2/(2 \kappa^2)}
@@ -332,7 +358,7 @@ def compute_2pt(fullphi0, params):
 
     Arguments:
         * fullphi0: Array of all phi_k values for ell = 0
-        * params: Parameters class
+        * params: EOMParameters object
 
     Returns <(\delta \hat{\phi})^2>
     == \pi/(2 R^3) \sum_n n^2 |\phi|^2 e^{-k^2/(2 \kappa^2)}
@@ -350,7 +376,7 @@ def compute_2ptgrad(fullphi1, params):
 
     Arguments:
         * fullphi1: Array of all phi_k values for ell = 1
-        * params: Parameters class
+        * params: EOMParameters object
 
     Returns <(\grad \delta \hat{\phi})^2>
     == 1/(6 \pi R^3) \sum_k \sum_m k^2 / |j_2(kR)|^2 * |\phi|^2 e^{-k^2/(2 \kappa^2)}
