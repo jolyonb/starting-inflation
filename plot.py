@@ -341,12 +341,10 @@ for i in range(params.total_wavenumbers):
     psiB_data.append(violationB)
 psi_violations_A = define_fig(x_data=lna,
                               y_data=psiA_data,
-                              y_label=r'$\psi_A - \psi_A^{\rm constraint}$',
-                              y_range=(-1, 1))
+                              y_label=r'$\psi_A - \psi_A^{\rm constraint}$')
 psi_violations_B = define_fig(x_data=lna,
                               y_data=psiB_data,
-                              y_label=r'$\psi_B - \psi_B^{\rm constraint}$',
-                              y_range=(-1, 1))
+                              y_label=r'$\psi_B - \psi_B^{\rm constraint}$')
 
 # Curvature perturbation (R)
 data = []
@@ -375,8 +373,8 @@ pages = [
     [early(psiplots), psiplots],
 #    [early(psireplots), early(psiimplots)],
     [early(psirmsplot), psirmsplot],
-    [psi_violations_real, psi_violations_imag],
-    [early(psi_violations_real), early(psi_violations_imag)],
+#    [psi_violations_real, psi_violations_imag],
+#    [early(psi_violations_real), early(psi_violations_imag)],
     [psi_violations_A, psi_violations_B],
     [early(Rplots), Rplots]
 ]
