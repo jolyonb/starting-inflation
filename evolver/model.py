@@ -111,7 +111,7 @@ Initial <deltaphi^2>: {phi2pt}
         # Delta a = (e-1) * a / factor
         a = data[0]
         unpacked_data = unpack(data, self.total_wavenumbers)
-        _, _, H, adot, _, _, _, _, _, _, _ = compute_all(unpacked_data, self.eomparams)
+        _, _, H, adot, _, _, epsilon, _, _, _, _ = compute_all(unpacked_data, self.eomparams)
 
         # Get the shortest wavelength
         lamda = 2 * pi / self.k_grids[0][-1]
@@ -128,6 +128,12 @@ Initial <deltaphi^2>: {phi2pt}
 
         # Compute the timestep
         timestep = 1.71828 * a / factor / adot
+
+        # If we're nearing the end of inflation, take small timesteps
+        if epsilon > 0.80 and self.slowroll:
+            timestep = min(timestep, 50)
+
+        # print("Current timestep is", timestep, ", epsilon is", epsilon)
         return timestep
 
     def write_data(self, time, data):
