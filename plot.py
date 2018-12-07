@@ -64,6 +64,7 @@ phi_l1 = [None] * (params.k_modes-1)
 phidot_l1 = [None] * (params.k_modes-1)
 psi_l1 = [None] * (params.k_modes-1)
 for i in range(params.k_modes-1):
+    # TODO: These use the wrong components from the data file - should be i + params.k_modes, I think?
     phi_l1[i] = params.poscoeffs[1][0][i] * phiA[i] + params.velcoeffs[1][0][i] * phiB[i]
     phidot_l1[i] = params.poscoeffs[1][0][i] * phidotA[i] + params.velcoeffs[1][0][i] * phidotB[i]
     psi_l1[i] = params.poscoeffs[1][0][i] * psiA[i] + params.velcoeffs[1][0][i] * psiB[i]
@@ -327,6 +328,26 @@ psi_violations_imag = define_fig(x_data=lna,
                                  y_label=r'$\mathrm{Im}(C_k)$',
                                  y_range=(-1, 1))
 
+# \psi constraint violation without coefficients
+# This compares the psiA and psiB modes directly
+psiA_data = []
+psiB_data = []
+for i in range(params.total_wavenumbers):
+    constraintA = 1/2*(phi0ddot*phiA[i] - phi0dot*phidotA[i]) / (Hdot + params.all_wavenumbers2[i]/(a*a))
+    constraintB = 1/2*(phi0ddot*phiB[i] - phi0dot*phidotB[i]) / (Hdot + params.all_wavenumbers2[i]/(a*a))
+    violationA = psiA[i] - constraintA
+    violationB = psiB[i] - constraintB
+    psiA_data.append(violationA)
+    psiB_data.append(violationB)
+psi_violations_A = define_fig(x_data=lna,
+                              y_data=psiA_data,
+                              y_label=r'$\psi_A - \psi_A^{\rm constraint}$',
+                              y_range=(-1, 1))
+psi_violations_B = define_fig(x_data=lna,
+                              y_data=psiB_data,
+                              y_label=r'$\psi_B - \psi_B^{\rm constraint}$',
+                              y_range=(-1, 1))
+
 # Curvature perturbation (R)
 data = []
 for i in range(num_modes):
@@ -356,6 +377,7 @@ pages = [
     [early(psirmsplot), psirmsplot],
     [psi_violations_real, psi_violations_imag],
     [early(psi_violations_real), early(psi_violations_imag)],
+    [psi_violations_A, psi_violations_B],
     [early(Rplots), Rplots]
 ]
 
