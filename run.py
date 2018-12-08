@@ -14,7 +14,7 @@ from evolver.model import Model
 
 # Initialize all settings
 lamda = 1e-9
-filename = "data/newoutput"
+filename = "data/output"
 package = create_package(phi0=25,
                          phi0dot=-0.01,
                          infmodel=LambdaPhi4(lamda=lamda),

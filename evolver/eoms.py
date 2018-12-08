@@ -67,7 +67,7 @@ def compute_all(unpacked_data, params):
         Hdot = compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad)
         phi0ddot = compute_phi0ddot(phi0, phi0dot, H, phi2pt, params.model)
     else:
-        H = compute_hubble(rho, deltarho2)
+        H = compute_hubble(rho, 0)
         Hdot = compute_hubbledot(a, phi0dot, 0, 0)
         phi0ddot = compute_phi0ddot(phi0, phi0dot, H, 0, params.model)
 
@@ -248,38 +248,6 @@ def compute_initial_psi(a, adot, phi0, phi0dot,
 
     # Return the results
     return psiA, psiB
-
-def compute_psi_constraint_viol(a, adot, phi0, phi0dot, phiA, phidotA, phiB, phidotB,
-                                psiA, psiB, phi2pt, phi2ptdt, phi2ptgrad, params):
-    """
-    Compute the constraint violation in psi.
-
-    Arguments:
-        * a, adot, phi0, phi0dot: Background values
-        * phiA, phidotA, phiB, phidotB, psiA, psiB: Perturbed values
-        * phi2pt, phi2ptdt, phi2ptgrad: 2-point values
-        * params: EOMParameters object
-
-    Returns a tuple:
-        * (psiA - psiAconstraint, psiB - psiBconstraint)
-    """
-    # Construct the psi modes
-    psi_0, psi_1 = construct_full_modes(psiA, psiB, params)
-
-    # Construct the psi modes based on the constraint
-    result = compute_initial_psi(a, adot, phi0, phi0dot, phiA, phidotA, phiB, phidotB,
-                                 phi2pt, phi2ptdt, phi2ptgrad, params)
-    psi_constraint_0, psi_constraint_1 = construct_full_modes(result[0], result[1], params)
-
-    # Concatenate all psi modes into one big long vector
-    psi = np.concatenate((psi_0, psi_1[0], psi_1[1], psi_1[2]))
-    psi_constraint = np.concatenate((psi_constraint_0,
-                                     psi_constraint_1[0],
-                                     psi_constraint_1[1],
-                                     psi_constraint_1[2]))
-
-    # Compute the violation
-    return psi - psi_constraint
 
 def construct_full_modes(fieldA, fieldB, params):
     """
