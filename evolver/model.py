@@ -71,7 +71,8 @@ Initial deltarho2: {deltarho2}
 deltarho2/rho: {deltarho2/rho}
 Initial <deltaphi^2>: {phi2pt}
 """)
-            f.write(r"<deltaphi^2> / (H^2 \bar\kappa^2 / (4 pi^2)): {}\n".format(ratio))
+            f.write(r"<deltaphi^2> / (H^2 \bar\kappa^2 / (4 pi^2)): {}".format(ratio))
+            f.write("\n")
 
     def cleanup(self):
         """A function that is called after evolution finishes"""
