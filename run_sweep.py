@@ -15,13 +15,17 @@ from evolver.model import Model
 
 # Initialize all settings
 lamda = 1e-9
-filename = "data/newoutput_swp"
-hartree = True
+filename = "data/large_Hoff_sweep"
+hartree = False
+if hartree:
+    num_modes = 40
+else:
+    num_modes = 2
 
 # Background fields
-phi0s = np.linspace(20, 40, 3)
+phi0s = np.linspace(22, 32, 10)
 # Minimum phi0dot should be around -0.025, max should be around 0.025
-phi0dots = np.linspace(-0.01, 0.01, 3)
+phi0dots = np.linspace(-0.1, 0.1, 20)
 
 run = 0
 start = time.time()
@@ -36,26 +40,27 @@ package = create_package(phi0=None,
                          end_time=5000*sqrt(1e-6/lamda),
                          basefilename=None,
                          hartree=hartree,
-                         timestepinfo=[200,10])
+                         timestepinfo=[200, 10],
+                         num_k_modes=num_modes)
 
 for x, y in tqdm(list(itertools.product(phi0s, phi0dots))):
     # Construct the filename
     run += 1
     fn = filename + "-{}".format(run)
     infofile.write("{}\t{}\t{}\n".format(fn, x, y))
-    
-    #Update package
+
+    # Update package
     package['phi0'] = x
     package['phi0dot'] = y
     package['basefilename'] = fn
-                             
+
     parameters = create_parameters(package)
-    
-    #Create the model
+
+    # Create the model
     model = Model(parameters)
     model.save(fn + ".params")
-    
-    #Construct the driver
+
+    # Construct the driver
     driver = Driver(model)
 
     # Perform the evolution
