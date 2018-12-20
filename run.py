@@ -20,7 +20,7 @@ package = create_package(phi0=25,
                          infmodel=LambdaPhi4(lamda=lamda),
                          end_time=5000 * sqrt(1e-6/lamda),
                          basefilename=filename,
-                         hartree=True,
+                         hartree=True, perturbBD=True,
                          timestepinfo=[200, 10])  # ~steps per efold (inside horizon),
                                                   # ~steps per efold (outside horizon)
 parameters = create_parameters(package)
