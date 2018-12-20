@@ -153,7 +153,7 @@ def create_parameters(package):
         if parameters['l1modeson']:
             for i in range(3):
                 poscoeffs[1][i] = alpha / np.sqrt(2*k_grids[1])
-                velcoeffs[1][i] = np.sqrt(k_grids[1] / 2) * (1j*gamma - delta - (H0*alpha / k_grids[1]))
+                velcoeffs[1][i] = np.sqrt(k_grids[1] / 2) * (1j*gamma - delta -(H0*alpha / k_grids[1]))
         else:
             for i in range(3):
                 poscoeffs[1][i] = np.zeros_like(k_grids[1])
