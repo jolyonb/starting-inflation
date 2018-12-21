@@ -138,22 +138,31 @@ def create_parameters(package):
 
     if parameters['perturbBD']:
         # perturb away from Bunch-Davies initial conditions slightly
+
         # create range for draws of parameters to initialized modes
         delta_min = -1
         delta_max = 1
-        gamma_min = 0.25
+        gamma_min = 0.1
         gamma_max = 1
 
-        delta = round(np.random.uniform(delta_min, delta_max), 5)
-        gamma = round(np.random.uniform(gamma_min, gamma_max), 5)
-        alpha = 1/gamma
+        # random coefficients for l = 0 modes
+        delta0 = np.round(np.random.uniform(delta_min, delta_max, len(k_grids[0])), 5)
+        gamma0 = np.round(np.random.uniform(gamma_min, gamma_max, len(k_grids[0])), 5)
+        alpha0 = 1/gamma0
 
-        poscoeffs[0] = alpha / np.sqrt(2*k_grids[0])
-        velcoeffs[0] = np.sqrt(k_grids[0] / 2) * (1j*gamma - delta - (H0*alpha / k_grids[0]))
+        # random coefficients for l = 1 modes
+        delta1 = np.round(np.random.uniform(delta_min, delta_max, len(k_grids[1])), 5)
+        gamma1 = np.round(np.random.uniform(gamma_min, gamma_max, len(k_grids[1])), 5)
+        alpha1 = 1/gamma1
+
+        # attach coefficients
+        poscoeffs[0] = alpha0 / np.sqrt(2*k_grids[0])
+        velcoeffs[0] = np.sqrt(k_grids[0] / 2) * (1j*gamma0 - delta0 - (H0*alpha0 / k_grids[0]))
+
         if parameters['l1modeson']:
             for i in range(3):
-                poscoeffs[1][i] = alpha / np.sqrt(2*k_grids[1])
-                velcoeffs[1][i] = np.sqrt(k_grids[1] / 2) * (1j*gamma - delta -(H0*alpha / k_grids[1]))
+                poscoeffs[1][i] = alpha1 / np.sqrt(2*k_grids[1])
+                velcoeffs[1][i] = np.sqrt(k_grids[1] / 2) * (1j*gamma1 - delta1 - (H0*alpha1 / k_grids[1]))
         else:
             for i in range(3):
                 poscoeffs[1][i] = np.zeros_like(k_grids[1])
