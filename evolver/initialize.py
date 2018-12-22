@@ -21,6 +21,7 @@ def create_package(phi0,
                    Rmaxfactor=2,
                    kappafactor=20,
                    l1modeson=True,
+                   perturbBD=True,
                    perform_run=True,
                    **kwargs):
     """
@@ -58,6 +59,7 @@ def create_package(phi0,
         'Rmaxfactor': Rmaxfactor,
         'kappafactor': kappafactor,
         'l1modeson': l1modeson,
+        'perturbBD': perturbBD,
         'perform_run': perform_run,
         **kwargs
     }
@@ -134,17 +136,47 @@ def create_parameters(package):
     poscoeffs = [None, [None]*3]
     velcoeffs = [None, [None]*3]
 
-    # Bunch-Davies initial conditions
-    poscoeffs[0] = 1 / np.sqrt(2*k_grids[0])
-    velcoeffs[0] = np.sqrt(k_grids[0] / 2) * (-1j - H0 / k_grids[0])
-    if parameters['l1modeson']:
-        for i in range(3):
-            poscoeffs[1][i] = 1 / np.sqrt(2*k_grids[1])
-            velcoeffs[1][i] = np.sqrt(k_grids[1] / 2) * (-1j - H0 / k_grids[1])
+    if parameters['perturbBD']:
+        # perturb away from Bunch-Davies initial conditions slightly
+        # create range for draws of parameters to initialized modes
+        delta_min = -1
+        delta_max = 1
+        gamma_min = 0.1
+        gamma_max = 1
+
+        # random coefficients for l = 0 modes
+        delta0 = np.round(np.random.uniform(delta_min, delta_max, len(k_grids[0])), 5)
+        gamma0 = np.round(np.random.uniform(gamma_min, gamma_max, len(k_grids[0])), 5)
+        alpha0 = 1/gamma0
+
+        # attach coefficients
+        poscoeffs[0] = alpha0 / np.sqrt(2*k_grids[0])
+        velcoeffs[0] = np.sqrt(k_grids[0] / 2) * (1j*gamma0 - delta0 - (H0*alpha0 / k_grids[0]))
+
+        if parameters['l1modeson']:
+            for i in range(3):
+                # random coefficients for l = 1 modes
+                delta1 = np.round(np.random.uniform(delta_min, delta_max, len(k_grids[1])), 5)
+                gamma1 = np.round(np.random.uniform(gamma_min, gamma_max, len(k_grids[1])), 5)
+                alpha1 = 1/gamma1
+                poscoeffs[1][i] = alpha1 / np.sqrt(2*k_grids[1])
+                velcoeffs[1][i] = np.sqrt(k_grids[1] / 2) * (1j*gamma1 - delta1 - (H0*alpha1 / k_grids[1]))
+        else:
+            for i in range(3):
+                poscoeffs[1][i] = np.zeros_like(k_grids[1])
+                velcoeffs[1][i] = np.zeros_like(k_grids[1])
     else:
-        for i in range(3):
-            poscoeffs[1][i] = np.zeros_like(k_grids[1])
-            velcoeffs[1][i] = np.zeros_like(k_grids[1])
+        # run standard Bunch-Davies initial conditions
+        poscoeffs[0] = 1 / np.sqrt(2*k_grids[0])
+        velcoeffs[0] = np.sqrt(k_grids[0] / 2) * (-1j - H0 / k_grids[0])
+        if parameters['l1modeson']:
+            for i in range(3):
+                poscoeffs[1][i] = 1 / np.sqrt(2*k_grids[1])
+                velcoeffs[1][i] = np.sqrt(k_grids[1] / 2) * (-1j - H0 / k_grids[1])
+        else:
+            for i in range(3):
+                poscoeffs[1][i] = np.zeros_like(k_grids[1])
+                velcoeffs[1][i] = np.zeros_like(k_grids[1])
 
     ###########################
     # Construct EOMParameters #

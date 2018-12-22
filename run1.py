@@ -3,7 +3,8 @@
 """
 run.py
 
-Performs an evolution
+Performs a modified run of a previously generated data set
+ex. Hartree off -> on
 """
 import time
 from math import sqrt
@@ -11,24 +12,22 @@ from evolver.integrator import Driver, Status
 from evolver.initialize import create_package, create_parameters
 from evolver.inflation import LambdaPhi4
 from evolver.model import Model
+import argparse
 
-# Initialize all settings
-lamda = 1e-7
-filename = "data/output"
-package = create_package(phi0=25,
-                         phi0dot=-0.01,
-                         infmodel=LambdaPhi4(lamda=lamda),
-                         end_time=5000 * sqrt(1e-6/lamda),
-                         basefilename=filename,
-                         hartree=False,
-                         perturbBD=True,
-                         timestepinfo=[200, 10])  # ~steps per efold (inside horizon),
-                                                  # ~steps per efold (outside horizon)
-parameters = create_parameters(package)
+parser = argparse.ArgumentParser(description="load data from previous run")
+parser.add_argument("filename", help="Base of the filename to read data in from")
+args = parser.parse_args()
 
 # Create the model
-model = Model(parameters)
-model.save(filename + ".params")
+model = Model.load(args.filename + ".params")
+
+# modify the parameters of a previous run for the current run
+model.parameters['hartree'] = True
+model.eomparams.hartree = True
+
+model.parameters['basefilename'] = 'newrun'
+model.basefilename = 'data/newrun'
+model.save('data/newrun' + ".params")
 
 # Construct the driver
 driver = Driver(model)
