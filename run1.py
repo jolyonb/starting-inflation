@@ -26,8 +26,8 @@ model.parameters['hartree'] = True
 model.eomparams.hartree = True
 
 model.parameters['basefilename'] = 'newrun'
-model.basefilename = 'newrun'
-model.save('newrun' + ".params")
+model.basefilename = 'data/newrun'
+model.save('data/newrun' + ".params")
 
 # Construct the driver
 driver = Driver(model)
