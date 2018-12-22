@@ -26,8 +26,6 @@ package = create_package(phi0=25,
                                                   # ~steps per efold (outside horizon)
 parameters = create_parameters(package)
 
-print (parameters)
-
 # Create the model
 model = Model(parameters)
 model.save(filename + ".params")
