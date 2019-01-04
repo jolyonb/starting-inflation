@@ -13,9 +13,9 @@ from evolver.inflation import LambdaPhi4
 from evolver.model import Model
 
 # Initialize all settings
-lamda = 1e-7
+lamda = 1e-9
 filename = "data/output"
-package = create_package(phi0=25,
+package = create_package(phi0=22.5,
                          phi0dot=-0.01,
                          infmodel=LambdaPhi4(lamda=lamda),
                          end_time=5000 * sqrt(1e-6/lamda),
