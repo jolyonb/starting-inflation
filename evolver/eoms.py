@@ -156,9 +156,9 @@ def compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, model):
         * phi2pt, phi2ptdt, phi2ptgrad: various two-point functions
         * model: InflationModel class
 
-    Returns deltarho2 == 1/2 (2-pt \dot{\phi} + 2-pt \grad(\phi)/a^2 + V''(phi_0) * 2-pt \phi)
+    Returns deltarho2 == 1/2 (2-pt \dot{\phi} + 2-pt \grad(\phi)/a^2 + V''(phi_0) * 2-pt \phi + 0.25 * V''''(phi_0) * 2-pt \phi * 2-pt \phi)
     """
-    return (phi2ptdt + phi2ptgrad/(a*a) + phi2pt*model.ddpotential(phi0))/2
+    return (phi2ptdt + phi2ptgrad/(a*a) + phi2pt*model.ddpotential(phi0) + (phi2pt*phi2pt*model.ddddpotential(phi0)/4))/2
 
 def compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad):
     """
