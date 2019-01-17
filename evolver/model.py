@@ -56,6 +56,7 @@ class Model(AbstractModel):
 
         with open(self.basefilename + ".info", "w") as f:
             f.write(f"""Evolution Parameters and Initial Conditions
+Seed: {self.parameters['seed']}
 Number of l=0 modes: {params.k_modes}
 Number of l=1 modes: {params.k_modes - 1}
 Hartree corrections on: {params.hartree}
