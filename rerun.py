@@ -1,33 +1,44 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-run.py
+rerun.py
 
-Performs a modified run of a previously generated data set
-ex. Hartree off -> on
+Loads data from a previous run and evolves it again
+Allows initializations to be changed!
 """
 import time
-from math import sqrt
 from evolver.integrator import Driver, Status
-from evolver.initialize import create_package, create_parameters
-from evolver.inflation import LambdaPhi4
 from evolver.model import Model
 import argparse
 
-parser = argparse.ArgumentParser(description="load data from previous run")
-parser.add_argument("filename", help="Base of the filename to read data in from")
+desc = "Reruns a previous run, possibly with changed parameters"
+parser = argparse.ArgumentParser(description=desc)
+parser.add_argument("filename", help="Parameters file to load (.params file)")
 args = parser.parse_args()
 
-# Create the model
+# Load the model
 model = Model.load(args.filename + ".params")
 
-# modify the parameters of a previous run for the current run
-model.parameters['hartree'] = True
-model.eomparams.hartree = True
 
-model.parameters['basefilename'] = 'newrun'
-model.basefilename = 'data/newrun'
-model.save('data/newrun' + ".params")
+#
+# If you want to modify any parameters, do it here
+#
+
+# Hartree on/off
+hartree = False
+model.parameters['hartree'] = hartree
+model.eomparams.hartree = hartree
+
+# Change the filename
+filename = "data/newrun"
+model.parameters['basefilename'] = filename
+model.basefilename = filename
+model.save(filename + ".params")
+
+
+#
+# Now do the run again
+#
 
 # Construct the driver
 driver = Driver(model)
