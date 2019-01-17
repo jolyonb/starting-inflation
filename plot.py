@@ -100,7 +100,7 @@ def create_cover_sheet(canvas):
     ax.text(0.05, 0.95, r'$K$ = 0.0')
     ax.text(0.05, 0.90, (r'$\frac{\delta\rho^{(2)}(0)}{\rho(0)}$ = '
                          + str(round(deltarho2[0]/rho[0], 3))))
-    ax.text(0.05, 0.85, r'$R_{\rm max} H(0)$ = ' + str(round(params.Rmax, 1)))
+    ax.text(0.05, 0.85, r'$R_{\rm max}$ = ' + str(round(params.Rmax, 1)))
     ax.text(0.05, 0.80, r'$\lambda$ = ' + str(params.model.lamda))
     ax.text(0.05, 0.75, r'$\frac{\kappa}{H(0)}$ = ' + str(round(params.kappa/H[0], 1)))
     ax.text(0.05, 0.70, r'$\phi_0$ = ' + str(phi0[0]))

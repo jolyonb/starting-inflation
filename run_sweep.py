@@ -16,16 +16,29 @@ from evolver.model import Model
 # Initialize all settings
 lamda = 1e-9
 filename = "data/large_Hoff_sweep"
-hartree = False
+hartree = True
 if hartree:
     num_modes = 40
 else:
     num_modes = 2
 
 # Background fields
-phi0s = np.linspace(22, 32, 10)
-# Minimum phi0dot should be around -0.025, max should be around 0.025
-phi0dots = np.linspace(-0.1, 0.1, 20)
+# Note that a step of 1 only does the start value
+phi0start = 25
+phi0stop = 32
+phi0steps = 1
+phi0dotstart = -0.1
+phi0dotstop = 0.1
+phi0dotsteps = 1
+# Number of runs to perform at each step
+numruns = 20
+
+# Construct our steps
+phi0s = np.linspace(phi0start, phi0stop, phi0steps)
+phi0dots = np.linspace(phi0dotstart, phi0dotstop, phi0dotsteps)
+if not hartree:
+    numruns = 1
+runnums = [i + 1 for i in range(numruns)]
 
 run = 0
 start = time.time()
@@ -40,10 +53,11 @@ package = create_package(phi0=None,
                          end_time=5000*sqrt(1e-6/lamda),
                          basefilename=None,
                          hartree=hartree,
+                         perturbBD=True,
                          timestepinfo=[200, 10],
                          num_k_modes=num_modes)
 
-for x, y in tqdm(list(itertools.product(phi0s, phi0dots))):
+for x, y, runnum in tqdm(list(itertools.product(phi0s, phi0dots, runnums))):
     # Construct the filename
     run += 1
     fn = filename + "-{}".format(run)
