@@ -4,6 +4,7 @@ initialize.py
 
 Initializes parameters for a run
 """
+import random
 import numpy as np
 from scipy.special import spherical_jn
 from evolver.besselroots import get_jn_roots
@@ -23,6 +24,7 @@ def create_package(phi0,
                    l1modeson=True,
                    perturbBD=True,
                    perform_run=True,
+                   seed=None,
                    **kwargs):
     """
     Packages all the settings that need to be set for a run into a dictionary.
@@ -46,7 +48,9 @@ def create_package(phi0,
         * Rmaxfactor: The factor by which to increase Rmax from the initial Hubble radius
         * kappafactor: Sets the scale of the regulator in terms of Hubble
         * l1modeson: If set to False, initializes all l=1 modes with zero coefficients
+        * perturbBD: Do we perturb about Bunch-Davies?
         * perform_run: Do we evolve, pr just set everything up?
+        * seed: Random seed (use None to pick a random Random seed)
     """
     package = {
         'phi0': phi0,
@@ -61,6 +65,7 @@ def create_package(phi0,
         'l1modeson': l1modeson,
         'perturbBD': perturbBD,
         'perform_run': perform_run,
+        'seed': seed,
         **kwargs
     }
     return package
@@ -74,6 +79,11 @@ def create_parameters(package):
     """
     # Start by copying everything in the package
     parameters = {**package}
+
+    # Set up the random seed
+    if parameters['seed'] is None:
+        parameters['seed'] = random.randrange(2**32 - 1)
+    np.random.seed(parameters['seed'])
 
     #########################
     # Background quantities #
