@@ -26,21 +26,24 @@ Nef_crit = 65.0
 def plot3d(phi0, phi0dot, value, name):
     fig = plt.figure(figsize=(7.0, 7.0), dpi=100)
     ax = fig.add_subplot(111, projection='3d')
-    sc = ax.plot_wireframe(phi0, phi0dot, value)
 
-    ax.set_xlabel(r'$\phi$')
-    ax.set_ylabel(r'$\dot{\phi}$')
-    ax.set_zlabel(name)
+    # Plot the data points (we could reconstruct a surface if we desired)
+    ax.scatter(phi0, phi0dot, value)
 
     # Plot the critical threshold
     xmin = phi0[0]
     xmax = phi0[-1]
     ymin = phi0dot[0]
     ymax = phi0dot[-1]
-    xx = [[xmin, xmax], [xmin, xmax]]
-    yy = [[ymin, ymin], [ymax, ymax]]
-    zz = [[Nef_crit, Nef_crit], [Nef_crit, Nef_crit]]
-    ax.plot_surface(xx, yy, Nef_crit, alpha=0.2)
+
+    X, Y = np.meshgrid([xmin, xmax], [ymin, ymax])
+    Z = 0*X + Nef_crit
+    ax.plot_surface(X, Y, Z, alpha=0.2)
+
+    # Add some labels
+    ax.set_xlabel(r'$\phi$')
+    ax.set_ylabel(r'$\dot{\phi}$')
+    ax.set_zlabel(name)
 
     return fig
 
