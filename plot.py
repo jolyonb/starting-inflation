@@ -219,7 +219,7 @@ def define_fig(x_data, y_data,
         'y_type': y_type
     }
 
-def early(data, range=(0, 7)):
+def early(data, range=(0, 6)):
     """Restricts the plotting range in x to the given range"""
     return {**data, 'x_range': range}
 
@@ -247,8 +247,9 @@ rhoplot = define_fig(x_data=lna,
                      y_label=r'$\rho$',
                      y_type=PlotStyle.LOG10)
 deltarho2plot = define_fig(x_data=lna,
-                           y_data=deltarho2,
+                           y_data=[deltarho2, 10**-5*a**-4],  # scaling line a^-4
                            y_label=r'$\delta\rho^{(2)}$',
+                           y_range=(10**-12, 5*deltarho2[0]),
                            y_type=PlotStyle.LOG10)
 energyratio = define_fig(x_data=lna,
                          y_data=deltarho2/rho,

@@ -15,20 +15,20 @@ from evolver.model import Model
 
 # Initialize all settings
 lamda = 1e-9
-hartree_settings = [True, False]  # Make a list of Hartree settings here
-filename = "data/large_sweep"
+hartree_settings = [True]
+filename = "data/Jan30"
 
 # Background fields
 # Note that a step of 1 only does the start value
-phi0start = 25
-phi0stop = 32
-phi0steps = 3
-phi0dotstart = -0.05
-phi0dotstop = 0.05
-phi0dotsteps = 3
+phi0start = 20
+phi0stop = 25
+phi0steps = 20
+phi0dotstart = 0.015
+phi0dotstop = 0.02
+phi0dotsteps = 20
 
 # Number of runs to perform at each step (for Hartree on)
-numruns = 2
+numruns = 1
 
 # Fix the number of modes
 if True in hartree_settings:
@@ -53,7 +53,7 @@ package = create_package(phi0=None,
                          infmodel=LambdaPhi4(lamda=lamda),
                          end_time=5000*sqrt(1e-6/lamda),
                          basefilename=None,
-                         perturbBD=True,
+                         perturbBD=False,
                          timestepinfo=[200, 10],
                          num_k_modes=num_modes)
 

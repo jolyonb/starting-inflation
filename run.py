@@ -15,13 +15,13 @@ from evolver.model import Model
 # Initialize all settings
 lamda = 1e-9
 filename = "data/output"
-package = create_package(phi0=22.5,
-                         phi0dot=-0.01,
+package = create_package(phi0=24.4,
+                         phi0dot=0.02,
                          infmodel=LambdaPhi4(lamda=lamda),
                          end_time=5000 * sqrt(1e-6/lamda),
                          basefilename=filename,
-                         hartree=False,
-                         perturbBD=True,
+                         hartree=True,
+                         perturbBD=False,
                          seed=None,
                          timestepinfo=[200, 10])  # ~steps per efold (inside horizon),
                                                   # ~steps per efold (outside horizon)

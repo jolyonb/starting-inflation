@@ -22,9 +22,10 @@ args = parser.parse_args()
 
 def phase_plotter(phis, phidots, cs, infls, cname):
     fig = plt.figure(figsize=(7.0, 7.0), dpi=100)
-    sc = plt.scatter(phis, phidots, s=10.0+infls*50.0, c=cs,
-                     cmap=cm.YlOrRd, marker='o', linewidth=0.0)
+    sc = plt.scatter(phis, phidots, s=30.0+infls*40.0, c=cs,
+                     cmap=cm.cool, marker='o', linewidth=0.0)
     plt.xlabel(r'$\phi$')
+    plt.ylim((0.01, 0.03))
     plt.ylabel(r'$\dot{\phi}$')
     cbr = plt.colorbar(sc)
     cbr.set_label(cname, rotation=270, fontsize=8)
@@ -32,7 +33,7 @@ def phase_plotter(phis, phidots, cs, infls, cname):
 
 # Specify the critical number of efolds above/below which we determine
 # sufficient/insufficient inflation
-Nef_crit = 60.0
+Nef_crit = 65.0
 
 # Suck up the data
 with open(args.filename + "-info.txt") as f:
@@ -95,20 +96,20 @@ fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
                     plot_data["infl"], '$N_{ef}$')
 pdf_pages.savefig(fig)
 #
-fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
-                    plot_data["rho"] + plot_data["deltarho2"],
-                    plot_data["infl"], r'$\rho + \delta \rho^{2}$')
-pdf_pages.savefig(fig)
-#
+# fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
+#                     plot_data["rho"] + plot_data["deltarho2"],
+#                     plot_data["infl"], r'$\rho + \delta \rho^{2}$')
+# pdf_pages.savefig(fig)
+# #
 fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
                     plot_data["deltarho2"] / plot_data["rho"],
                     plot_data["infl"], r'$\delta \rho^{2} / \rho$')
 pdf_pages.savefig(fig)
 #
-fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
-                    plot_data["phi2pt"]/(plot_data["kappa"]/(2*np.pi))**2,
-                    plot_data["infl"],
-                    r'$<(\delta\phi)^{2}>_{t_{0}}/\frac{\kappa^{2}}{4\pi^{2}}$')
-pdf_pages.savefig(fig)
+# fig = phase_plotter(plot_data["phi0"], plot_data["phi0dot"],
+#                     plot_data["phi2pt"]/(plot_data["kappa"]/(2*np.pi))**2,
+#                     plot_data["infl"],
+#                     r'$<(\delta\phi)^{2}>_{t_{0}}/\frac{\kappa^{2}}{4\pi^{2}}$')
+# pdf_pages.savefig(fig)
 #
 pdf_pages.close()
