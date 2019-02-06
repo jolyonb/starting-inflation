@@ -221,7 +221,7 @@ def compute_perturb_phiddot(phi0, phi0dot, a, H, phi, phidot, psi, psidot, phi2p
 def compute_initial_psi(a, adot, phi0, phi0dot,
                         phiA, phidotA, phiB, phidotB,
                         phi2pt, phi2ptdt, phi2ptgrad, params):
-    """
+    r"""
     Compute initial values of psiA and psiB
 
     Arguments:
@@ -234,7 +234,7 @@ def compute_initial_psi(a, adot, phi0, phi0dot,
         * (psiA, psiB)
 
     Formula:
-    (\dot{H} + k^2/a^2) \psi = 1/(2 M_{pl}^2) [\ddot{\phi}_0 \phi - \dot{\phi}_0 \dot{\phi}]
+    (\dot{H} + 2/(3 Mp^2 a^2) phi2ptgrad + k^2/a^2) \psi = 1/(2 M_{pl}^2) [\ddot{\phi}_0 \phi - \dot{\phi}_0 \dot{\phi}]
     """
     # Compute background quantities we need
     H = adot/a
@@ -242,7 +242,7 @@ def compute_initial_psi(a, adot, phi0, phi0dot,
     phi0ddot = compute_phi0ddot(phi0, phi0dot, H, phi2pt, params.model)
 
     # Compute psi
-    factor = Hdot + params.all_wavenumbers2/(a*a)
+    factor = Hdot + 2/(3*a*a) * phi2ptgrad + params.all_wavenumbers2/(a*a)
     psiA = 0.5*(phi0ddot*phiA - phi0dot*phidotA)/factor
     psiB = 0.5*(phi0ddot*phiB - phi0dot*phidotB)/factor
 
