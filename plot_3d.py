@@ -16,12 +16,15 @@ from evolver.utilities import load_data, analyze
 ####################################
 parser = argparse.ArgumentParser(description="Plot data from a sweep")
 parser.add_argument("filename", help="Base of the output name to read data in from")
-parser.add_argument("outfilename", help="Filename to output to (include .pdf)")
+# parser.add_argument("outfilename", help="Filename to output to (include .pdf)")
 args = parser.parse_args()
 
 # Specify the critical number of efolds above/below which we determine
 # sufficient/insufficient inflation
 Nef_crit = 65.0
+
+# Select what to plot
+plot_types = {"off": True, "bunchdavies": False, "hartree": False}
 
 def plot3d(phi0, phi0dot, value, name):
     fig = plt.figure(figsize=(7.0, 7.0), dpi=100)
@@ -41,8 +44,8 @@ def plot3d(phi0, phi0dot, value, name):
     ax.plot_surface(X, Y, Z, alpha=0.2)
 
     # Add some labels
-    ax.set_xlabel(r'$\phi$')
-    ax.set_ylabel(r'$\dot{\phi}$')
+    ax.set_xlabel(r'$\phi_0$')
+    ax.set_ylabel(r'$\dot{\phi}_0$')
     ax.set_zlabel(name)
 
     return fig
@@ -72,7 +75,18 @@ plot_data = {
   "infl": [],
   "kappa": [],
 }
+
 for file, phi0, phi0dot in data:
+    if file.endswith("bd"):
+        if not plot_types["bunchdavies"]:
+            continue
+    elif file.endswith("off"):
+        if not plot_types["off"]:
+            continue
+    else:
+        if not plot_types["hartree"]:
+            continue
+
     model = Model.load(file + ".params")
     params = model.eomparams
     results = load_data(file)
@@ -99,7 +113,7 @@ for key in plot_data:
 # pdf_pages = PdfPages(args.outfilename)
 
 fig = plot3d(plot_data["phi0"], plot_data["phi0dot"],
-             plot_data["efolds"], '$N_{ef}$')
+             plot_data["efolds"], '$N$')
 plt.show()
 
 # pdf_pages.savefig(fig)
