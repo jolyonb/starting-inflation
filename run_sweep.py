@@ -50,7 +50,7 @@ package = create_package(phi0=None,
                          infmodel=LambdaPhi4(lamda=lamda),
                          end_time=5000*sqrt(1e-6/lamda),
                          basefilename=None,
-                         perturbBD=True,
+                         perturbBD=False,
                          timestepinfo=[200, 10],
                          num_k_modes=num_modes)
 
