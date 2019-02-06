@@ -19,21 +19,30 @@ parser.add_argument("filename", help="Base of the output name to read data in fr
 parser.add_argument("outfilename", help="Filename to output to (include .pdf)")
 args = parser.parse_args()
 
+# Specify the critical number of efolds above/below which we determine
+# sufficient/insufficient inflation
+Nef_crit = 65.0
 
 def plot3d(phi0, phi0dot, value, name):
     fig = plt.figure(figsize=(7.0, 7.0), dpi=100)
     ax = fig.add_subplot(111, projection='3d')
-    sc = ax.scatter(phi0, phi0dot, value, marker='o')
+    sc = ax.plot_wireframe(phi0, phi0dot, value)
 
     ax.set_xlabel(r'$\phi$')
     ax.set_ylabel(r'$\dot{\phi}$')
     ax.set_zlabel(name)
 
-    return fig
+    # Plot the critical threshold
+    xmin = phi0[0]
+    xmax = phi0[-1]
+    ymin = phi0dot[0]
+    ymax = phi0dot[-1]
+    xx = [[xmin, xmax], [xmin, xmax]]
+    yy = [[ymin, ymin], [ymax, ymax]]
+    zz = [[Nef_crit, Nef_crit], [Nef_crit, Nef_crit]]
+    ax.plot_surface(xx, yy, Nef_crit, alpha=0.2)
 
-# Specify the critical number of efolds above/below which we determine
-# sufficient/insufficient inflation
-Nef_crit = 65.0
+    return fig
 
 # Suck up the data
 with open(args.filename + "-info.txt") as f:
