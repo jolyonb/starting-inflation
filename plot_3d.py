@@ -5,6 +5,9 @@ Plots the results from a parameter sweep
 """
 import argparse
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
+
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_pdf import PdfPages
@@ -24,14 +27,26 @@ args = parser.parse_args()
 Nef_crit = 65.0
 
 # Select what to plot
-plot_types = {"off": True, "bunchdavies": False, "hartree": False}
+plot_types = {"off": False, "bunchdavies": False, "hartree": True}
 
 def plot3d(phi0, phi0dot, value, name):
     fig = plt.figure(figsize=(7.0, 7.0), dpi=100)
     ax = fig.add_subplot(111, projection='3d')
 
+    # Grab the phi0 values
+    phi0vals = sorted(list(set(phi0)))
+    phi0dotvals = sorted(list(set(phi0dot)))
+    phi0mesh, phi0dotmesh = np.meshgrid(phi0vals, phi0dotvals)
+    zmesh = np.zeros_like(phi0mesh)
+
+    for idx in range(len(value)):
+        xidx = phi0vals.index(phi0[idx])
+        yidx = phi0dotvals.index(phi0dot[idx])
+        zmesh[xidx, yidx] = value[idx]
+
     # Plot the data points (we could reconstruct a surface if we desired)
-    ax.scatter(phi0, phi0dot, value)
+    # ax.scatter(phi0, phi0dot, value)
+    ax.plot_wireframe(phi0mesh, phi0dotmesh, zmesh)
 
     # Plot the critical threshold
     xmin = phi0[0]
