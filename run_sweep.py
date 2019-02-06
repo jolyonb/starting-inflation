@@ -60,7 +60,7 @@ def perform_run(phi0, phi0dot, filename, hartree, bunchdavies):
     package['phi0dot'] = phi0dot
     package['basefilename'] = filename
     package['hartree'] = hartree
-    package['perturbBD'] = bunchdavies
+    package['perturbBD'] = not bunchdavies
 
     parameters = create_parameters(package)
 
