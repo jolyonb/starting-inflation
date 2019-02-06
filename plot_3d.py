@@ -24,9 +24,11 @@ def plot3d(phi0, phi0dot, value, name):
     fig = plt.figure(figsize=(7.0, 7.0), dpi=100)
     ax = fig.add_subplot(111, projection='3d')
     sc = ax.scatter(phi0, phi0dot, value, marker='o')
-    plt.xlabel(r'$\phi$')
-    plt.ylabel(r'$\dot{\phi}$')
-    plt.zlabel(name)
+
+    ax.set_xlabel(r'$\phi$')
+    ax.set_ylabel(r'$\dot{\phi}$')
+    ax.set_zlabel(name)
+
     return fig
 
 # Specify the critical number of efolds above/below which we determine
@@ -82,10 +84,11 @@ for key in plot_data:
     plot_data[key] = np.array(plot_data[key])
 
 # Create PDF plots
-pdf_pages = PdfPages(args.outfilename)
+# pdf_pages = PdfPages(args.outfilename)
 
 fig = plot3d(plot_data["phi0"], plot_data["phi0dot"],
              plot_data["efolds"], '$N_{ef}$')
-pdf_pages.savefig(fig)
+plt.show()
 
-pdf_pages.close()
+# pdf_pages.savefig(fig)
+# pdf_pages.close()
