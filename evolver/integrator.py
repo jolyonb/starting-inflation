@@ -72,7 +72,7 @@ class AbstractModel(object):
         """A function that is called before evolution begins"""
         raise NotImplementedError()
 
-    def cleanup(self):
+    def cleanup(self, time, data):
         """A function that is called after evolution finishes"""
         raise NotImplementedError()
 
@@ -198,4 +198,4 @@ class Driver(object):
             self.model.write_data(self.time, self.data)
 
         # Clean up
-        self.model.cleanup()
+        self.model.cleanup(self.time, self.data)

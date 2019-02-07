@@ -25,6 +25,7 @@ def create_package(phi0,
                    perturbBD=True,
                    perform_run=True,
                    seed=None,
+                   fulloutput=True,
                    **kwargs):
     """
     Packages all the settings that need to be set for a run into a dictionary.
@@ -51,6 +52,7 @@ def create_package(phi0,
         * perturbBD: Do we perturb about Bunch-Davies?
         * perform_run: Do we evolve, pr just set everything up?
         * seed: Random seed (use None to pick a random Random seed)
+        * fulloutput: Do you want full output from a run, or only initial/final conditions?
     """
     package = {
         'phi0': phi0,
@@ -66,6 +68,7 @@ def create_package(phi0,
         'perturbBD': perturbBD,
         'perform_run': perform_run,
         'seed': seed,
+        'fulloutput': fulloutput,
         **kwargs
     }
     return package
