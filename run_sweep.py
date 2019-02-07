@@ -3,6 +3,7 @@
 """
 Performs a sweep over parameter space (evolutions only)
 """
+import os
 import time
 from math import sqrt
 import numpy as np
@@ -15,17 +16,21 @@ from evolver.model import Model
 
 # Initialize all settings
 lamda = 1e-9
-settings = {"off": True, "bunchdavies": True, "hartree": 1}
+settings = {"off": True, "bunchdavies": False, "hartree": 1}
 filename = "data/plotting"
+
+# Split the filename into a directory and a filename
+directory, filename = os.path.split(filename)
+os.chdir(directory)
 
 # Background fields
 # Note that a step of 1 only does the start value
 phi0start = 25
 phi0stop = 32
-phi0steps = 10
+phi0steps = 2
 phi0dotstart = -0.05
 phi0dotstop = 0.05
-phi0dotsteps = 10
+phi0dotsteps = 2
 
 # Fix the number of modes
 if settings["hartree"] > 0:
