@@ -15,17 +15,17 @@ from evolver.model import Model
 
 # Initialize all settings
 lamda = 1e-9
-settings = {"off": True, "bunchdavies": True, "hartree": 2}
-filename = "data/large_sweep"
+settings = {"off": True, "bunchdavies": True, "hartree": 1}
+filename = "data/plotting"
 
 # Background fields
 # Note that a step of 1 only does the start value
 phi0start = 25
 phi0stop = 32
-phi0steps = 2
+phi0steps = 10
 phi0dotstart = -0.05
 phi0dotstop = 0.05
-phi0dotsteps = 2
+phi0dotsteps = 10
 
 # Fix the number of modes
 if settings["hartree"] > 0:

@@ -247,7 +247,7 @@ rhoplot = define_fig(x_data=lna,
                      y_label=r'$\rho$',
                      y_type=PlotStyle.LOG10)
 deltarho2plot = define_fig(x_data=lna,
-                           y_data=[deltarho2, 10**-5*a**-4],  # scaling line a^-4
+                           y_data=[deltarho2, deltarho2[0]*a**-4],  # scaling line a^-4
                            y_label=r'$\delta\rho^{(2)}$',
                            y_range=(10**-12, 5*deltarho2[0]),
                            y_type=PlotStyle.LOG10)
