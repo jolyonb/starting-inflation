@@ -3,6 +3,7 @@
 """
 Plots the results from a parameter sweep
 """
+import pickle
 import os
 import argparse
 import numpy as np
@@ -28,7 +29,7 @@ args = parser.parse_args()
 Nef_crit = 65.0
 
 # Select what to plot
-plot_types = {"off": True, "bunchdavies": False, "hartree": False}
+plot_types = {"off": False, "bunchdavies": False, "hartree": True}
 
 def plot3d(phi0, phi0dot, value, name):
     fig = plt.figure(figsize=(7.0, 7.0), dpi=100)
@@ -69,6 +70,7 @@ def plot3d(phi0, phi0dot, value, name):
 # Parse the filename
 filename = args.filename
 directory, filename = os.path.split(filename)
+olddir = os.getcwd()
 os.chdir(directory)
 
 # Suck up the data
@@ -108,22 +110,13 @@ for file, phi0, phi0dot in data:
         if not plot_types["hartree"]:
             continue
 
-    model = Model.load(file + ".params")
-    params = model.eomparams
-    results = load_data(file)
-    details = analyze(results["a"], results["epsilon"])
+    with open(file + ".quick", 'rb') as f:
+        quickdata = pickle.load(f)
 
-    # Store all of the data we wish to plot
-    plot_data["phi0"].append(results["phi0"][0])
-    plot_data["phi0dot"].append(results["phi0dot"][0])
-    plot_data["H"].append(results["H"][0])
-    plot_data["rho"].append(results["rho"][0])
-    plot_data["deltarho2"].append(results["deltarho2"][0])
-    plot_data["phi2pt"].append(results["phi2pt"][0])
-    plot_data["kappa"].append(params.kappa)
-    if "efolds" in details:
-        plot_data["efolds"].append(details['efolds'])
-    else:
+    for key in quickdata:
+        if key in plot_data:
+            plot_data[key].append(quickdata[key])
+    if "efolds" not in quickdata:
         plot_data["efolds"].append(0.0)
 
 # Convert plot data to numpy arrays
@@ -131,6 +124,7 @@ for key in plot_data:
     plot_data[key] = np.array(plot_data[key])
 
 # Create PDF plots
+# os.chdir(olddir)
 # pdf_pages = PdfPages(args.outfilename)
 
 fig = plot3d(plot_data["phi0"], plot_data["phi0dot"],

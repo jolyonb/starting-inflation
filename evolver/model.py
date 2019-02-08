@@ -4,8 +4,9 @@ model.py
 
 Defines the model for evolution, built on top of AbstractModel
 """
+import pickle
 from math import pi
-from evolver.eoms import eoms, compute_all, compute_2ptpsi
+from evolver.eoms import eoms, compute_all, compute_2ptpsi, N_efolds
 from evolver.integrator import AbstractModel
 from evolver.utilities import pack, unpack
 
@@ -34,6 +35,7 @@ class Model(AbstractModel):
         self.k_grids = self.parameters['k_grids']
         self.infmodel = self.parameters['infmodel']
         self.eomparams = self.parameters['eomparams']
+        self.fulloutput = self.parameters['fulloutput']
 
         # Set internal flags
         self.slowroll = False
@@ -41,8 +43,9 @@ class Model(AbstractModel):
     def begin(self):
         """Open file handles for evolution and write initial description"""
         # Set up the file handles for writing data
-        self.datafile = open(self.basefilename + ".dat", "w")
-        self.extrafile = open(self.basefilename + ".dat2", "w")
+        if self.fulloutput:
+            self.datafile = open(self.basefilename + ".dat", "w")
+            self.extrafile = open(self.basefilename + ".dat2", "w")
 
         # Write the initial description to file
         params = self.eomparams
@@ -75,10 +78,34 @@ Initial <deltaphi^2>: {phi2pt}
             f.write(r"<deltaphi^2> / (H^2 \bar\kappa^2 / (4 pi^2)): {}".format(ratio))
             f.write("\n")
 
-    def cleanup(self):
+        # Save initial data for later dumping
+        self.quickdata = {
+            "phi0": phi0,
+            "phi0dot": phi0dot,
+            "H": H,
+            "rho": rho,
+            "deltarho2": deltarho2,
+            "phi2pt": phi2pt,
+            "kappa": params.kappa
+        }
+
+    def cleanup(self, time, data):
         """A function that is called after evolution finishes"""
-        self.datafile.close()
-        self.extrafile.close()
+        if self.fulloutput:
+            self.datafile.close()
+            self.extrafile.close()
+
+        # Finish up the quickdata
+        if self.slowroll:
+            self.quickdata["slowroll"] = True
+            if self.halt:
+                self.quickdata["inflationended"] = True
+                a = data[0]
+                self.quickdata["efolds"] = N_efolds(a)
+
+        # Write the quickdata
+        with open(self.basefilename + ".quick", 'wb') as f:
+            pickle.dump(self.quickdata, f)
 
     def derivatives(self, time, data):
         """Computes derivatives for evolution"""
@@ -143,6 +170,9 @@ Initial <deltaphi^2>: {phi2pt}
         A function that is called between timesteps (and also at the
         start/end of integration), when data is ready for writing.
         """
+        if not self.fulloutput:
+            return
+
         # Write the raw data
         text = self.format_data(time, data)
         self.datafile.write(text)

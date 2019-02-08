@@ -16,7 +16,7 @@ from evolver.model import Model
 
 # Initialize all settings
 lamda = 1e-9
-settings = {"off": True, "bunchdavies": False, "hartree": 1}
+settings = {"off": False, "bunchdavies": False, "hartree": 1}
 filename = "data/plotting"
 
 # Split the filename into a directory and a filename
@@ -25,12 +25,12 @@ os.chdir(directory)
 
 # Background fields
 # Note that a step of 1 only does the start value
-phi0start = 25
-phi0stop = 32
-phi0steps = 2
-phi0dotstart = -0.05
-phi0dotstop = 0.05
-phi0dotsteps = 2
+phi0start = 20
+phi0stop = 30
+phi0steps = 3
+phi0dotstart = -0.01
+phi0dotstop = 0.01
+phi0dotsteps = 3
 
 # Fix the number of modes
 if settings["hartree"] > 0:
@@ -57,7 +57,8 @@ package = create_package(phi0=None,
                          basefilename=None,
                          perturbBD=False,
                          timestepinfo=[200, 10],
-                         num_k_modes=num_modes)
+                         num_k_modes=num_modes,
+                         fulloutput=False)
 
 def perform_run(phi0, phi0dot, filename, hartree, bunchdavies):
     # Update package
