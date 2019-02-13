@@ -5,7 +5,7 @@ model.py
 Defines the model for evolution, built on top of AbstractModel
 """
 import pickle
-from math import pi
+from math import pi, sqrt
 from evolver.eoms import eoms, compute_all, compute_2ptpsi, N_efolds
 from evolver.integrator import AbstractModel
 from evolver.utilities import pack, unpack
@@ -57,6 +57,8 @@ class Model(AbstractModel):
 
         ratio = phi2pt/(params.kappa**2/4/pi**2)
 
+        psi2pt = compute_2ptpsi(psiA, psiB, self.eomparams)
+
         with open(self.basefilename + ".info", "w") as f:
             f.write(f"""Evolution Parameters and Initial Conditions
 Seed: {self.parameters['seed']}
@@ -74,6 +76,7 @@ Initial rho: {rho}
 Initial deltarho2: {deltarho2}
 deltarho2/rho: {deltarho2/rho}
 Initial <deltaphi^2>: {phi2pt}
+Initial Psi RMS: {sqrt(psi2pt)}
 """)
             f.write(r"<deltaphi^2> / (H^2 \bar\kappa^2 / (4 pi^2)): {}".format(ratio))
             f.write("\n")

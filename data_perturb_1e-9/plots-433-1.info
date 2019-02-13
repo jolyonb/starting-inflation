@@ -1,0 +1,17 @@
+Evolution Parameters and Initial Conditions
+Seed: 1214222561
+Number of l=0 modes: 40
+Number of l=1 modes: 39
+Hartree corrections on: True
+R_max: 74.293891251973
+kappa: 0.5384022740757671
+Model: LambdaPhi4
+lambda: 1e-09
+Initial phi0: 20.869565217391305
+Initial phi0dot: -0.06521739130434784
+Initial H: 0.08981464551534778
+Initial rho: 0.002174077565474681
+Initial deltarho2: 0.022025934081668058
+deltarho2/rho: 10.131162949956199
+Initial <deltaphi^2>: 0.05479536134756658
+<deltaphi^2> / (H^2 \bar\kappa^2 / (4 pi^2)): 7.462593075382935

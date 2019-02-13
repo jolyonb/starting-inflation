@@ -383,3 +383,5 @@ pages = [
 
 # Construct the PDF
 make_pdf(pages, args.outfilename)
+
+print ((0.5 * phi0dot[0] * phi0dot[0])/(0.25 * params.model.lamda * V[0]**4))

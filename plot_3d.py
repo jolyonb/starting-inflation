@@ -29,7 +29,7 @@ args = parser.parse_args()
 Nef_crit = 65.0
 
 # Select what to plot
-plot_types = {"off": False, "bunchdavies": False, "hartree": True}
+plot_types = {"off": True, "bunchdavies": False, "hartree": False}
 
 def plot3d(phi0, phi0dot, value, name):
     fig = plt.figure(figsize=(7.0, 7.0), dpi=100)
