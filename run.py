@@ -13,16 +13,16 @@ from evolver.inflation import LambdaPhi4
 from evolver.model import Model
 
 # Initialize all settings
-lamda = 1e-9
-filename = "data/output"
-package = create_package(phi0=24.4,
-                         phi0dot=0.02,
+lamda = 1e-12
+filename = "data/output3"
+package = create_package(phi0=27.0,
+                         phi0dot=-0.1,
                          infmodel=LambdaPhi4(lamda=lamda),
                          end_time=5000 * sqrt(1e-6/lamda),
                          basefilename=filename,
-                         hartree=True,
+                         hartree=False,
                          perturbBD=False,
-                         seed=None,
+                         seed=None,    # None or a number
                          timestepinfo=[200, 10])  # ~steps per efold (inside horizon),
                                                   # ~steps per efold (outside horizon)
 parameters = create_parameters(package)

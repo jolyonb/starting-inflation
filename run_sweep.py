@@ -15,9 +15,9 @@ from evolver.inflation import LambdaPhi4
 from evolver.model import Model
 
 # Initialize all settings
-lamda = 1e-9
-settings = {"off": False, "bunchdavies": False, "hartree": 1}
-filename = "data/plotting"
+lamda = 1e-12
+settings = {"off": True, "bunchdavies": False, "hartree": 0}
+filename = "data/plots"
 
 # Split the filename into a directory and a filename
 directory, filename = os.path.split(filename)
@@ -27,10 +27,10 @@ os.chdir(directory)
 # Note that a step of 1 only does the start value
 phi0start = 20
 phi0stop = 30
-phi0steps = 3
-phi0dotstart = -0.01
-phi0dotstop = 0.01
-phi0dotsteps = 3
+phi0steps = 15
+phi0dotstart = -0.1
+phi0dotstop = 0.1
+phi0dotsteps = 15
 
 # Fix the number of modes
 if settings["hartree"] > 0:
