@@ -69,7 +69,7 @@ for i in range(params.k_modes-1):
     phidot_l1[i] = params.poscoeffs[1][0][i] * phidotA[i] + params.velcoeffs[1][0][i] * phidotB[i]
     psi_l1[i] = params.poscoeffs[1][0][i] * psiA[i] + params.velcoeffs[1][0][i] * psiB[i]
 
-# Make a big list of all the perturbative modes
+# Use the \ell = 0 and \ell = 1 modes
 # deltaphi = phi_l0 + phi_l1
 # deltaphidot = phidot_l0 + phidot_l1
 # psi = psi_l0 + psi_l1
