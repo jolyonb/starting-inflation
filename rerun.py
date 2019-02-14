@@ -24,10 +24,8 @@ model = Model.load(args.filename + ".params")
 # If you want to modify any parameters, do it here
 #
 
-# Hartree on/off
-hartree = False
-model.parameters['hartree'] = hartree
-model.eomparams.hartree = hartree
+model.parameters['fulloutput'] = True
+model.fulloutput = True
 
 # Change the filename
 filename = "data/newrun"

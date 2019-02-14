@@ -4,13 +4,15 @@ initialize.py
 
 Initializes parameters for a run
 """
+import sys
 import random
 import numpy as np
+from math import sqrt
 from scipy.special import spherical_jn
 from evolver.besselroots import get_jn_roots
 from evolver.utilities import pack
 from evolver.eoms import (compute_hubble, compute_initial_psi, compute_hartree,
-                          compute_rho, compute_deltarho2, EOMParameters)
+                          compute_rho, compute_deltarho2, EOMParameters, compute_hubbledot)
 
 def create_package(phi0,
                    phi0dot,
@@ -80,6 +82,25 @@ def create_parameters(package):
     dictionary has been generated, it should not be modified, as doing so
     may cause inconsistencies.
     """
+    # Do this repeatedly until we don't hit a bad k mode
+    originalrmax = package['Rmaxfactor']
+    rmax = originalrmax
+    packagecopy = {**package}
+    for i in range(100):
+        try:
+            packagecopy['Rmaxfactor'] = rmax
+            parameters = _create_parameters(packagecopy)
+            return parameters
+        except BadK:
+            # Allow rmax to vary by up to 10%
+            rmax = originalrmax * (1 + random.random() / 5)
+    print("Unable to find reasonable initial conditions")
+    sys.exit(0)
+
+class BadK(Exception):
+    """An exception that is raised when a bad k value is hit"""
+
+def _create_parameters(package):
     # Start by copying everything in the package
     parameters = {**package}
 
@@ -234,6 +255,18 @@ def create_parameters(package):
 
     # Compute adot from Hubble
     adot = compute_hubble(rho, deltarho2) * a
+
+    # Compute Hdot
+    Hdot = compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad)
+
+    # Make sure that we don't have any k^2 values that are within a factor of 2 of
+    # |Hdot + 2/3*phi2ptgrad|
+    dangerval = sqrt(abs(Hdot + 2/3*phi2ptgrad))
+    for val in all_wavenumbers:
+        if val > dangerval * 0.98 and val < dangerval * 1.02:
+            # We have a mode that is getting an artificial boost
+            # Report an issue so we can try again
+            raise BadK()
 
     # Now compute the initial values for the psi fields
     psiA, psiB = compute_initial_psi(a, adot, phi0, phi0dot,
