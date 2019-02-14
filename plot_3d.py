@@ -42,8 +42,8 @@ def plot3d(phi0, phi0dot, value, name):
     zmesh = np.zeros_like(phi0mesh)
 
     for idx in range(len(value)):
-        xidx = phi0vals.index(phi0[idx])
-        yidx = phi0dotvals.index(phi0dot[idx])
+        xidx = phi0dotvals.index(phi0dot[idx])
+        yidx = phi0vals.index(phi0[idx])
         zmesh[xidx, yidx] = value[idx]
 
     # Plot the data points (we could reconstruct a surface if we desired)
@@ -97,6 +97,7 @@ plot_data = {
   "efolds": [],
   "infl": [],
   "kappa": [],
+  "filename": []
 }
 
 for file, phi0, phi0dot in data:
@@ -118,6 +119,7 @@ for file, phi0, phi0dot in data:
             plot_data[key].append(quickdata[key])
     if "efolds" not in quickdata:
         plot_data["efolds"].append(0.0)
+    plot_data["filename"].append(file)
 
 # Convert plot data to numpy arrays
 for key in plot_data:
