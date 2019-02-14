@@ -14,7 +14,7 @@ from evolver.model import Model
 
 # Initialize all settings
 lamda = 1e-12
-filename = "data/output"
+filename = "data/output3"
 package = create_package(phi0=27.0,
                          phi0dot=-0.1,
                          infmodel=LambdaPhi4(lamda=lamda),
@@ -22,7 +22,7 @@ package = create_package(phi0=27.0,
                          basefilename=filename,
                          hartree=False,
                          perturbBD=False,
-                         seed=False,
+                         seed=None,    # None or a number
                          timestepinfo=[200, 10])  # ~steps per efold (inside horizon),
                                                   # ~steps per efold (outside horizon)
 parameters = create_parameters(package)

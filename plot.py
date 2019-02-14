@@ -114,9 +114,12 @@ def create_cover_sheet(canvas):
     ax.text(0.05, 0.35, r'$\sqrt{\langle \psi^2 \rangle}$ = ' + str(round(np.sqrt(psi2pt[0]), 6)))
     ax.text(0.05, 0.30, r'$N_{\rm e-folds}$ = ' + str(round(N_efolds(a[-1]), 2)))
     ax.text(0.05, 0.25, r'$n_{\rm max}$ = ' + str(round(params.k_modes, 1)))
-
-
-    # Should add - is Hartree on, and name of the output file
+    ax.text(0.05, 0.20, 'Seed = ' + str(model.parameters["seed"]))
+    if model.parameters["hartree"]:
+        ax.text(0.05, 0.15, 'Hartree ON')
+    else:
+        ax.text(0.05, 0.15, 'Hartree OFF')
+    ax.text(0.05, 0.10, 'Filename: ' + model.basefilename)
 
     # Hide the ticks (this is an empty plot!)
     ax.tick_params(
