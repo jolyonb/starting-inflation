@@ -1,0 +1,250 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      6914,        242]
+NotebookOptionsPosition[      5831,        202]
+NotebookOutlinePosition[      6245,        220]
+CellTagsIndexPosition[      6202,        217]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Sweep Visualizations", "Section"],
+
+Cell["Set the working directory.", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], ";"}]], "Input"],
+
+Cell["Import data.", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"data", "=", 
+   RowBox[{"Import", "[", "\"\<plotting-math.csv\>\"", "]"}]}], 
+  ";"}]], "Input"],
+
+Cell["\<\
+Data comes in 11 columns:
+1: phi0
+2: phi0dot
+3: H
+4: rho
+5:  deltarho2
+6: phi2pt
+7: efolds
+8: kappa
+9: inflated (0 -> Did not inflate, 1 -> Did inflate)
+10: type (0 -> Hartree Off, 1 -> Bunch Davies, 2-> Perturbed)
+11: filename\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"names", "=", 
+   RowBox[{"{", 
+    RowBox[{
+    "\"\<\[Phi]0\>\"", ",", 
+     "\"\<\!\(\*OverscriptBox[\(\[Phi]\), \(.\)]\)0\>\"", ",", "\"\<H\>\"", 
+     ",", "\"\<\[Rho]\>\"", ",", 
+     "\"\<\!\(\*SubscriptBox[\(\[Delta]\[Rho]\), \(2\)]\)\>\"", ",", 
+     "\"\<<\!\(\*SuperscriptBox[\(\[Delta]\[Phi]\), \(2\)]\)>\>\"", ",", 
+     "\"\<\!\(\*SubscriptBox[\(N\), \(e - folds\)]\)\>\"", ",", 
+     "\"\<\[Kappa]\>\"", ",", "\"\<Inflated\>\"", ",", "\"\<Type\>\"", ",", 
+     "\"\<Filename\>\""}], "}"}]}], ";"}]], "Input"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"criticalEfolds", "=", "65"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"critplane", "=", 
+   RowBox[{"Plot3D", "[", "\[IndentingNewLine]", 
+    RowBox[{"criticalEfolds", ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0", ",", "50"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"y", ",", 
+       RowBox[{"-", "1"}], ",", "1"}], "}"}], ",", "\[IndentingNewLine]", 
+     RowBox[{"ColorFunction", "\[Rule]", 
+      RowBox[{"Function", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"x", ",", "y", ",", "z"}], "}"}], ",", 
+        RowBox[{"RGBColor", "[", 
+         RowBox[{"0.5", ",", "0.5", ",", "0.5", ",", "0.5"}], "]"}]}], 
+       "]"}]}]}], "\[IndentingNewLine]", "]"}]}], ";"}]}], "Input"],
+
+Cell[CellGroupData[{
+
+Cell["Functions", "Subsection"],
+
+Cell["Select specific kinds of data", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Selects", " ", "Hartree", " ", "off", " ", "data", " ", "only"}], 
+   " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"SelectOff", "[", "data_", "]"}], ":=", 
+    RowBox[{"Select", "[", 
+     RowBox[{"data", ",", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"#", "[", 
+         RowBox[{"[", "10", "]"}], "]"}], "\[Equal]", "0"}], "&"}]}], "]"}]}],
+    "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{
+    "Selects", " ", "Bunch", " ", "Davies", " ", "data", " ", "only"}], " ", 
+    "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"SelectBD", "[", "data_", "]"}], ":=", 
+    RowBox[{"Select", "[", 
+     RowBox[{"data", ",", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"#", "[", 
+         RowBox[{"[", "10", "]"}], "]"}], "\[Equal]", "1"}], "&"}]}], "]"}]}],
+    "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{"Selects", " ", "perturbed", " ", "data", " ", "only"}], " ", 
+    "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"SelectPerturbed", "[", "data_", "]"}], ":=", 
+    RowBox[{"Select", "[", 
+     RowBox[{"data", ",", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"#", "[", 
+         RowBox[{"[", "10", "]"}], "]"}], "==", "2"}], "&"}]}], 
+     "]"}]}]}]}]], "Input"],
+
+Cell["\<\
+Extract specific types of data (specify the column number that you want)\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SelectQuantity", "[", 
+   RowBox[{"data_", ",", "index_"}], "]"}], ":=", 
+  RowBox[{"data", "[", 
+   RowBox[{"[", 
+    RowBox[{";;", ",", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", "2", ",", "index"}], "}"}]}], "]"}], "]"}]}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["3D Mesh Plot", "Subsection"],
+
+Cell["Select perturbed data", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"working", "=", 
+   RowBox[{"SelectPerturbed", "[", "data", "]"}]}], ";"}]], "Input"],
+
+Cell["Select the relevant index", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"index", "=", "7"}], ";"}]], "Input"],
+
+Cell[BoxData[{
+ RowBox[{"Print", "[", 
+  RowBox[{"\"\<Plotting \>\"", " ", "<>", " ", 
+   RowBox[{"names", "[", 
+    RowBox[{"[", "index", "]"}], "]"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Show", "[", 
+  RowBox[{
+   RowBox[{"ListPlot3D", "[", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"SelectQuantity", "[", 
+      RowBox[{"working", ",", "index"}], "]"}], ",", "\[IndentingNewLine]", 
+     RowBox[{"AxesLabel", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"names", "[", 
+         RowBox[{"[", "1", "]"}], "]"}], ",", 
+        RowBox[{"names", "[", 
+         RowBox[{"[", "2", "]"}], "]"}], ",", 
+        RowBox[{"names", "[", 
+         RowBox[{"[", "index", "]"}], "]"}]}], "}"}]}], ",", 
+     RowBox[{"ColorFunction", "\[Rule]", 
+      RowBox[{"Function", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"x", ",", "y", ",", "z"}], "}"}], ",", 
+        RowBox[{"Hue", "[", 
+         RowBox[{".65", 
+          RowBox[{"(", 
+           RowBox[{"1", "-", "z"}], ")"}]}], "]"}]}], "]"}]}]}], 
+    "\[IndentingNewLine]", "]"}], ",", "\[IndentingNewLine]", "critplane"}], 
+  "]"}]}], "Input"]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{808, 911},
+WindowMargins->{{Automatic, 517}, {62, Automatic}},
+TrackCellChangeTimes->False,
+Magnification:>1.5 Inherited,
+FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (July 28, \
+2016)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 39, 0, 95, "Section"],
+Cell[622, 24, 42, 0, 46, "Text"],
+Cell[667, 26, 123, 3, 48, "Input"],
+Cell[793, 31, 28, 0, 46, "Text"],
+Cell[824, 33, 131, 4, 48, "Input"],
+Cell[958, 39, 251, 13, 371, "Text"],
+Cell[1212, 54, 557, 12, 86, "Input"],
+Cell[1772, 68, 757, 19, 204, "Input"],
+Cell[CellGroupData[{
+Cell[2554, 91, 31, 0, 65, "Subsection"],
+Cell[2588, 93, 45, 0, 46, "Text"],
+Cell[2636, 95, 1305, 39, 204, "Input"],
+Cell[3944, 136, 96, 2, 76, "Text"],
+Cell[4043, 140, 272, 8, 80, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4352, 153, 34, 0, 65, "Subsection"],
+Cell[4389, 155, 37, 0, 46, "Text"],
+Cell[4429, 157, 119, 3, 48, "Input"],
+Cell[4551, 162, 41, 0, 46, "Text"],
+Cell[4595, 164, 71, 2, 48, "Input"],
+Cell[4669, 168, 1134, 30, 235, "Input"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
