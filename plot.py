@@ -64,24 +64,23 @@ phi_l1 = [None] * (params.k_modes-1)
 phidot_l1 = [None] * (params.k_modes-1)
 psi_l1 = [None] * (params.k_modes-1)
 for i in range(params.k_modes-1):
-    # TODO: These use the wrong components from the data file - should be i + params.k_modes, I think?
-    phi_l1[i] = params.poscoeffs[1][0][i] * phiA[i] + params.velcoeffs[1][0][i] * phiB[i]
-    phidot_l1[i] = params.poscoeffs[1][0][i] * phidotA[i] + params.velcoeffs[1][0][i] * phidotB[i]
-    psi_l1[i] = params.poscoeffs[1][0][i] * psiA[i] + params.velcoeffs[1][0][i] * psiB[i]
+    phi_l1[i] = params.poscoeffs[1][0][i] * phiA[i + params.k_modes] + params.velcoeffs[1][0][i] * phiB[i + params.k_modes]
+    phidot_l1[i] = params.poscoeffs[1][0][i] * phidotA[i + params.k_modes] + params.velcoeffs[1][0][i] * phidotB[i + params.k_modes]
+    psi_l1[i] = params.poscoeffs[1][0][i] * psiA[i + params.k_modes] + params.velcoeffs[1][0][i] * psiB[i + params.k_modes]
 
 # Use the \ell = 0 and \ell = 1 modes
-# deltaphi = phi_l0 + phi_l1
-# deltaphidot = phidot_l0 + phidot_l1
-# psi = psi_l0 + psi_l1
-# num_modes = params.total_wavenumbers
-# k_modes = params.all_wavenumbers
+deltaphi = phi_l0 + phi_l1
+deltaphidot = phidot_l0 + phidot_l1
+psi = psi_l0 + psi_l1
+num_modes = params.total_wavenumbers
+k_modes = params.all_wavenumbers
 
-# Just use the \ell = 0 modes
-deltaphi = phi_l0
-deltaphidot = phidot_l0
-psi = psi_l0
-num_modes = params.k_modes
-k_modes = params.k_grids[0]
+# # Just use the \ell = 0 modes
+# deltaphi = phi_l0
+# deltaphidot = phidot_l0
+# psi = psi_l0
+# num_modes = params.k_modes
+# k_modes = params.k_grids[0]
 
 
 ######################
