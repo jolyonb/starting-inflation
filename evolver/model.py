@@ -5,7 +5,7 @@ model.py
 Defines the model for evolution, built on top of AbstractModel
 """
 import pickle
-from math import pi, sqrt, ln
+from math import pi, sqrt, log
 from evolver.eoms import eoms, compute_all, compute_2ptpsi, N_efolds
 from evolver.integrator import AbstractModel
 from evolver.utilities import pack, unpack
@@ -128,10 +128,10 @@ Initial Psi RMS: {sqrt(psi2pt)}
         if epsilon < 0.1:
             # Mark when we think slowroll has started
             if self.slowrollstart is None:
-                self.slowrollstart = ln(a)
+                self.slowrollstart = log(a)
             # Make sure we've been inflating long enough in slowroll
             # before saying it is so
-            if ln(a) - self.slowrollstart > 1:
+            if log(a) - self.slowrollstart > 1:
                 self.slowroll = True
         elif self.slowroll and epsilon >= 1:
             self.halt = True
