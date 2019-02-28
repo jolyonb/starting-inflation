@@ -5,7 +5,7 @@ model.py
 Defines the model for evolution, built on top of AbstractModel
 """
 import pickle
-from math import pi, sqrt
+from math import pi, sqrt, log
 from evolver.eoms import eoms, compute_all, compute_2ptpsi, N_efolds
 from evolver.integrator import AbstractModel
 from evolver.utilities import pack, unpack
@@ -39,6 +39,8 @@ class Model(AbstractModel):
 
         # Set internal flags
         self.slowroll = False
+        self.slowrollstart = None
+        self.slowrollend = None
 
     def begin(self):
         """Open file handles for evolution and write initial description"""
@@ -114,6 +116,7 @@ Initial Psi RMS: {sqrt(psi2pt)}
         """Computes derivatives for evolution"""
         # Unpack the data
         unpacked_data = unpack(data, self.total_wavenumbers)
+        a = unpacked_data[0]
 
         # Use the equations of motion
         (adot, epsilon, phi0dot, phi0ddot, phidotA, phiddotA,
@@ -123,10 +126,19 @@ Initial Psi RMS: {sqrt(psi2pt)}
 
         # Check for slowroll
         if epsilon < 0.1:
-            self.slowroll = True
+            # Mark when we think slowroll has started
+            if self.slowrollstart is None:
+                self.slowrollstart = log(a)
+            # Make sure we've been inflating long enough in slowroll
+            # before saying it is so
+            if log(a) - self.slowrollstart > 1:
+                self.slowroll = True
         elif self.slowroll and epsilon >= 1:
             self.halt = True
             self.haltmsg = "Inflation has ended"
+        elif epsilon > 0.1:
+            # We're not slowrolling, so mark it so
+            self.slowrollstart = None
 
         # Recombine the derivatives
         return pack(adot, phi0dot, phi0ddot,
