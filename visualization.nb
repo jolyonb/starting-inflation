@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     17501,        571]
-NotebookOptionsPosition[     15719,        512]
-NotebookOutlinePosition[     16134,        530]
-CellTagsIndexPosition[     16091,        527]
+NotebookDataLength[     24625,        780]
+NotebookOptionsPosition[     22036,        697]
+NotebookOutlinePosition[     22450,        715]
+CellTagsIndexPosition[     22407,        712]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -34,7 +34,8 @@ Cell["Import data.", "Text"],
 Cell[BoxData[
  RowBox[{
   RowBox[{"data", "=", 
-   RowBox[{"Import", "[", "\"\<plots-math.csv\>\"", "]"}]}], ";"}]], "Input"],
+   RowBox[{"Import", "[", "\"\<plots-math-10.csv\>\"", "]"}]}], 
+  ";"}]], "Input"],
 
 Cell["\<\
 Data comes in 11 columns:
@@ -50,6 +51,12 @@ Data comes in 11 columns:
 10: type (0 -> Hartree Off, 1 -> Bunch Davies, 2-> Perturbed)
 11: filename\
 \>", "Text"],
+
+Cell["Which index do you want to work with?", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"index", "=", "7"}], ";"}]], "Input"],
 
 Cell[BoxData[
  RowBox[{
@@ -85,6 +92,29 @@ Cell[BoxData[{
         RowBox[{"RGBColor", "[", 
          RowBox[{"0.5", ",", "0.5", ",", "0.5", ",", "0.5"}], "]"}]}], 
        "]"}]}]}], "\[IndentingNewLine]", "]"}]}], ";"}]}], "Input"],
+
+Cell["Select all \[Phi]0 and \[Phi]0dot values.", "Text"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"\[Phi]0vals", "=", 
+   RowBox[{"Sort", "[", 
+    RowBox[{"DeleteDuplicates", "[", 
+     RowBox[{"data", "[", 
+      RowBox[{"[", 
+       RowBox[{";;", ",", "1"}], "]"}], "]"}], "]"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"\[Phi]0dotvals", "=", 
+   RowBox[{"Sort", "[", 
+    RowBox[{"DeleteDuplicates", "[", 
+     RowBox[{"data", "[", 
+      RowBox[{"[", 
+       RowBox[{";;", ",", "2"}], "]"}], "]"}], "]"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Length", "/@", 
+  RowBox[{"{", 
+   RowBox[{"\[Phi]0vals", ",", "\[Phi]0dotvals"}], "}"}]}]}], "Input"],
 
 Cell[CellGroupData[{
 
@@ -145,29 +175,39 @@ Cell[BoxData[
    RowBox[{"[", 
     RowBox[{";;", ",", 
      RowBox[{"{", 
-      RowBox[{"1", ",", "2", ",", "index"}], "}"}]}], "]"}], "]"}]}]], "Input"]
+      RowBox[{"1", ",", "2", ",", "index"}], "}"}]}], "]"}], "]"}]}]], "Input"],
+
+Cell["Helper function to find index for a value in a list.", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"FindIndex", "[", 
+   RowBox[{"value_", ",", "list_"}], "]"}], ":=", 
+  RowBox[{
+   RowBox[{"Position", "[", 
+    RowBox[{"list", ",", "value"}], "]"}], "[", 
+   RowBox[{"[", 
+    RowBox[{"1", ",", "1"}], "]"}], "]"}]}]], "Input"]
 }, Open  ]],
 
 Cell[CellGroupData[{
 
-Cell["Bunch-Davies", "Subsection"],
+Cell["Hartree Off", "Subsection"],
 
 Cell[BoxData[{
  RowBox[{
-  RowBox[{"working", "=", 
-   RowBox[{"SelectBD", "[", "data", "]"}]}], ";"}], "\n", 
- RowBox[{
-  RowBox[{"index", "=", "7"}], ";"}], "\n", 
+  RowBox[{"workingoff", "=", 
+   RowBox[{"SelectOff", "[", "data", "]"}]}], ";"}], "\n", 
  RowBox[{"Print", "[", 
   RowBox[{"\"\<Plotting \>\"", " ", "<>", " ", 
    RowBox[{"names", "[", 
     RowBox[{"[", "index", "]"}], "]"}]}], "]"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"bdplot", "=", 
+  RowBox[{"offplot", "=", 
    RowBox[{"ListPlot3D", "[", "\[IndentingNewLine]", 
     RowBox[{
      RowBox[{"SelectQuantity", "[", 
-      RowBox[{"working", ",", "index"}], "]"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"workingoff", ",", "index"}], "]"}], ",", "\[IndentingNewLine]", 
      RowBox[{"AxesLabel", "\[Rule]", 
       RowBox[{"{", 
        RowBox[{
@@ -187,271 +227,383 @@ Cell[BoxData[{
          "]"}]}], "]"}]}]}], "\[IndentingNewLine]", "]"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{"Show", "[", 
-  RowBox[{"bdplot", ",", "critplane"}], "]"}]}], "Input"]
+  RowBox[{"offplot", ",", "critplane"}], "]"}]}], "Input"],
+
+Cell["Same thing, but in ContourPlot form.", "Text"],
+
+Cell[BoxData[
+ RowBox[{"ListContourPlot", "[", 
+  RowBox[{
+   RowBox[{"SelectQuantity", "[", 
+    RowBox[{"workingoff", ",", "index"}], "]"}], ",", 
+   RowBox[{"Contours", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"45", ",", "50", ",", "55", ",", "60", ",", "65", ",", "70"}], 
+     "}"}]}], ",", 
+   RowBox[{"PlotLegends", "\[Rule]", "Automatic"}], ",", 
+   RowBox[{"FrameLabel", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"names", "[", 
+       RowBox[{"[", "1", "]"}], "]"}], ",", 
+      RowBox[{"names", "[", 
+       RowBox[{"[", "2", "]"}], "]"}]}], "}"}]}]}], "]"}]], "Input"],
+
+Cell["This is the critical line.", "Text"],
+
+Cell[BoxData[
+ RowBox[{"Offline", "=", 
+  RowBox[{"ListContourPlot", "[", 
+   RowBox[{
+    RowBox[{"SelectQuantity", "[", 
+     RowBox[{"workingoff", ",", "index"}], "]"}], ",", 
+    RowBox[{"Contours", "\[Rule]", 
+     RowBox[{"{", "criticalEfolds", "}"}]}], ",", 
+    RowBox[{"FrameLabel", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"names", "[", 
+        RowBox[{"[", "1", "]"}], "]"}], ",", 
+       RowBox[{"names", "[", 
+        RowBox[{"[", "2", "]"}], "]"}]}], "}"}]}], ",", 
+    RowBox[{"ColorFunction", "\[Rule]", 
+     RowBox[{"Function", "[", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"x", ",", "y", ",", "z"}], "}"}], ",", 
+       RowBox[{"RGBColor", "[", 
+        RowBox[{"1", ",", "1", ",", "1", ",", "0"}], "]"}]}], "]"}]}], ",", 
+    RowBox[{"ContourStyle", "\[Rule]", "Blue"}]}], "]"}]}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Bunch-Davies", "Subsection"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"workingbd", "=", 
+   RowBox[{"SelectBD", "[", "data", "]"}]}], ";"}], "\n", 
+ RowBox[{"Print", "[", 
+  RowBox[{"\"\<Plotting \>\"", " ", "<>", " ", 
+   RowBox[{"names", "[", 
+    RowBox[{"[", "index", "]"}], "]"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"bdplot", "=", 
+   RowBox[{"ListPlot3D", "[", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"SelectQuantity", "[", 
+      RowBox[{"workingbd", ",", "index"}], "]"}], ",", "\[IndentingNewLine]", 
+     
+     RowBox[{"AxesLabel", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"names", "[", 
+         RowBox[{"[", "1", "]"}], "]"}], ",", 
+        RowBox[{"names", "[", 
+         RowBox[{"[", "2", "]"}], "]"}], ",", 
+        RowBox[{"names", "[", 
+         RowBox[{"[", "index", "]"}], "]"}]}], "}"}]}], ",", 
+     RowBox[{"ColorFunction", "\[Rule]", 
+      RowBox[{"Function", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"x", ",", "y", ",", "z"}], "}"}], ",", 
+        RowBox[{
+         RowBox[{"ColorData", "[", "\"\<NeonColors\>\"", "]"}], "[", "z", 
+         "]"}]}], "]"}]}]}], "\[IndentingNewLine]", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Show", "[", 
+  RowBox[{"bdplot", ",", "critplane"}], "]"}]}], "Input"],
+
+Cell["Same thing, but in ContourPlot form.", "Text"],
+
+Cell[BoxData[
+ RowBox[{"ListContourPlot", "[", 
+  RowBox[{
+   RowBox[{"SelectQuantity", "[", 
+    RowBox[{"workingbd", ",", "index"}], "]"}], ",", 
+   RowBox[{"Contours", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"45", ",", "50", ",", "55", ",", "60", ",", "65", ",", "70"}], 
+     "}"}]}], ",", 
+   RowBox[{"PlotLegends", "\[Rule]", "Automatic"}], ",", 
+   RowBox[{"FrameLabel", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"names", "[", 
+       RowBox[{"[", "1", "]"}], "]"}], ",", 
+      RowBox[{"names", "[", 
+       RowBox[{"[", "2", "]"}], "]"}]}], "}"}]}]}], "]"}]], "Input"],
+
+Cell["This is the critical line.", "Text"],
+
+Cell[BoxData[
+ RowBox[{"BDline", "=", 
+  RowBox[{"ListContourPlot", "[", 
+   RowBox[{
+    RowBox[{"SelectQuantity", "[", 
+     RowBox[{"workingbd", ",", "index"}], "]"}], ",", 
+    RowBox[{"Contours", "\[Rule]", 
+     RowBox[{"{", "criticalEfolds", "}"}]}], ",", 
+    RowBox[{"FrameLabel", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"names", "[", 
+        RowBox[{"[", "1", "]"}], "]"}], ",", 
+       RowBox[{"names", "[", 
+        RowBox[{"[", "2", "]"}], "]"}]}], "}"}]}], ",", 
+    RowBox[{"ColorFunction", "\[Rule]", 
+     RowBox[{"Function", "[", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"x", ",", "y", ",", "z"}], "}"}], ",", 
+       RowBox[{"RGBColor", "[", 
+        RowBox[{"1", ",", "1", ",", "1", ",", "0"}], "]"}]}], "]"}]}], ",", 
+    RowBox[{"ContourStyle", "\[Rule]", "Red"}]}], "]"}]}]], "Input"]
 }, Open  ]],
 
 Cell[CellGroupData[{
 
 Cell["Perturbed", "Subsection"],
 
+Cell[CellGroupData[{
+
+Cell["Obtaining statistics", "Subsubsection"],
+
 Cell[BoxData[
  RowBox[{
-  RowBox[{"working", "=", 
+  RowBox[{"workingperturbed", "=", 
    RowBox[{"SelectPerturbed", "[", "data", "]"}]}], ";"}]], "Input"],
 
-Cell["Select all \[Phi]0 and \[Phi]0dot values.", "Text"],
-
-Cell[BoxData[{
- RowBox[{
-  RowBox[{"\[Phi]0vals", "=", 
-   RowBox[{"Sort", "[", 
-    RowBox[{"DeleteDuplicates", "[", 
-     RowBox[{"working", "[", 
-      RowBox[{"[", 
-       RowBox[{";;", ",", "1"}], "]"}], "]"}], "]"}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"\[Phi]0dotvals", "=", 
-   RowBox[{"Sort", "[", 
-    RowBox[{"DeleteDuplicates", "[", 
-     RowBox[{"working", "[", 
-      RowBox[{"[", 
-       RowBox[{";;", ",", "2"}], "]"}], "]"}], "]"}], "]"}]}], 
-  ";"}]}], "Input"],
-
-Cell["Helper function to find index for a value in a list.", "Text"],
-
-Cell[BoxData[
- RowBox[{
-  RowBox[{"FindIndex", "[", 
-   RowBox[{"value_", ",", "list_"}], "]"}], ":=", 
-  RowBox[{
-   RowBox[{"Position", "[", 
-    RowBox[{"list", ",", "value"}], "]"}], "[", 
-   RowBox[{"[", 
-    RowBox[{"1", ",", "1"}], "]"}], "]"}]}]], "Input"],
-
 Cell["\<\
-Sort all data into the grid, then flatten into a list for processing.\
-\>", "Text"],
-
-Cell[BoxData[{
- RowBox[{
-  RowBox[{"grid", "=", 
-   RowBox[{"Table", "[", 
-    RowBox[{
-     RowBox[{"{", 
-      RowBox[{"i", ",", "j", ",", 
-       RowBox[{"{", "}"}]}], "}"}], " ", ",", 
-     RowBox[{"{", 
-      RowBox[{"i", ",", "\[Phi]0vals"}], "}"}], ",", 
-     RowBox[{"{", 
-      RowBox[{"j", ",", "\[Phi]0dotvals"}], "}"}]}], "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"Do", "[", "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"AppendTo", "[", "\[IndentingNewLine]", 
-     RowBox[{
-      RowBox[{"grid", "[", 
-       RowBox[{"[", 
-        RowBox[{
-         RowBox[{"FindIndex", "[", 
-          RowBox[{
-           RowBox[{"i", "[", 
-            RowBox[{"[", "1", "]"}], "]"}], ",", "\[Phi]0vals"}], "]"}], ",", 
-         
-         RowBox[{"FindIndex", "[", 
-          RowBox[{
-           RowBox[{"i", "[", 
-            RowBox[{"[", "2", "]"}], "]"}], ",", "\[Phi]0dotvals"}], "]"}], 
-         ",", "3"}], "]"}], "]"}], ",", "\[IndentingNewLine]", "i"}], "]"}], 
-    "\[IndentingNewLine]", ",", 
-    RowBox[{"{", 
-     RowBox[{"i", ",", "working"}], "}"}]}], "]"}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"flattenedgrid", "=", 
-   RowBox[{"Flatten", "[", 
-    RowBox[{"grid", ",", "1"}], "]"}]}], ";"}]}], "Input"],
-
-Cell["\<\
-Function to extract statistics from an element of flattenedgrid.\
+Workhorse function that takes in the desired data, and outputs a list of {\
+\[Phi]0, \[Phi]0dot, mean, \[Sigma]} values.\
 \>", "Text"],
 
 Cell[BoxData[
  RowBox[{
-  RowBox[{"extractstats", "[", "data_", "]"}], ":=", 
+  RowBox[{"ExtractStats", "[", 
+   RowBox[{"data_", ",", "index_"}], "]"}], ":=", 
   RowBox[{"Module", "[", 
    RowBox[{
     RowBox[{"{", 
-     RowBox[{"efolds", ",", "mean", ",", "sd"}], "}"}], ",", 
-    "\[IndentingNewLine]", 
+     RowBox[{"grid", ",", "i", ",", "efolds", ",", "mean", ",", "sd"}], "}"}],
+     ",", "\[IndentingNewLine]", 
+    RowBox[{"(*", " ", 
+     RowBox[{
+     "Start", " ", "by", " ", "sorting", " ", "all", " ", "the", " ", "data", 
+      " ", "by", " ", "\[Phi]0", " ", "and", " ", "\[Phi]0dot", " ", 
+      "value"}], " ", "*)"}], "\[IndentingNewLine]", 
     RowBox[{
-     RowBox[{"efolds", "=", 
-      RowBox[{"data", "[", 
-       RowBox[{"[", 
-        RowBox[{"3", ",", ";;", ",", "7"}], "]"}], "]"}]}], ";", 
+     RowBox[{"grid", "=", 
+      RowBox[{"Table", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"i", ",", "j", ",", 
+          RowBox[{"{", "}"}]}], "}"}], " ", ",", 
+        RowBox[{"{", 
+         RowBox[{"i", ",", "\[Phi]0vals"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"j", ",", "\[Phi]0dotvals"}], "}"}]}], "]"}]}], ";", 
      "\[IndentingNewLine]", 
-     RowBox[{"mean", "=", 
-      RowBox[{"Mean", "[", "efolds", "]"}]}], ";", "\[IndentingNewLine]", 
-     RowBox[{"sd", "=", 
-      RowBox[{"StandardDeviation", "[", "efolds", "]"}]}], ";", 
+     RowBox[{"Do", "[", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"AppendTo", "[", "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"grid", "[", 
+          RowBox[{"[", 
+           RowBox[{
+            RowBox[{"FindIndex", "[", 
+             RowBox[{
+              RowBox[{"i", "[", 
+               RowBox[{"[", "1", "]"}], "]"}], ",", "\[Phi]0vals"}], "]"}], 
+            ",", 
+            RowBox[{"FindIndex", "[", 
+             RowBox[{
+              RowBox[{"i", "[", 
+               RowBox[{"[", "2", "]"}], "]"}], ",", "\[Phi]0dotvals"}], "]"}],
+             ",", "3"}], "]"}], "]"}], ",", "\[IndentingNewLine]", "i"}], 
+        "]"}], "\[IndentingNewLine]", ",", 
+       RowBox[{"{", 
+        RowBox[{"i", ",", "data"}], "}"}]}], "]"}], ";", 
      "\[IndentingNewLine]", 
-     RowBox[{"{", 
-      RowBox[{"mean", ",", 
-       RowBox[{"mean", "+", "sd"}], ",", 
-       RowBox[{"mean", "-", "sd"}], ",", "sd"}], "}"}]}]}], 
-   "\[IndentingNewLine]", "]"}]}]], "Input"],
+     RowBox[{"(*", " ", 
+      RowBox[{"Flatten", " ", "into", " ", "a", " ", "list"}], " ", "*)"}], 
+     "\[IndentingNewLine]", 
+     RowBox[{"grid", "=", 
+      RowBox[{"Flatten", "[", 
+       RowBox[{"grid", ",", "1"}], "]"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"(*", " ", 
+      RowBox[{"Compute", " ", "statistics"}], " ", "*)"}], 
+     "\[IndentingNewLine]", 
+     RowBox[{"For", "[", 
+      RowBox[{
+       RowBox[{"i", "=", "1"}], ",", 
+       RowBox[{"i", "\[LessEqual]", 
+        RowBox[{"Length", "[", "grid", "]"}]}], ",", 
+       RowBox[{"i", "++"}], ",", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"efolds", "=", 
+         RowBox[{
+          RowBox[{"grid", "[", 
+           RowBox[{"[", "i", "]"}], "]"}], "[", 
+          RowBox[{"[", 
+           RowBox[{"3", ",", ";;", ",", "index"}], "]"}], "]"}]}], ";", 
+        "\[IndentingNewLine]", 
+        RowBox[{"mean", "=", 
+         RowBox[{"Mean", "[", "efolds", "]"}]}], ";", "\[IndentingNewLine]", 
+        RowBox[{"sd", "=", 
+         RowBox[{"StandardDeviation", "[", "efolds", "]"}]}], ";", 
+        "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"grid", "[", 
+          RowBox[{"[", "i", "]"}], "]"}], "=", 
+         RowBox[{
+          RowBox[{"grid", "[", 
+           RowBox[{"[", 
+            RowBox[{"i", ",", 
+             RowBox[{"1", ";;", "2"}]}], "]"}], "]"}], "~", "Join", "~", 
+          RowBox[{"{", 
+           RowBox[{"mean", ",", "sd"}], "}"}]}]}]}]}], "\[IndentingNewLine]", 
+      "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"(*", " ", 
+      RowBox[{"Report", " ", "results"}], " ", "*)"}], "\[IndentingNewLine]", 
+     "grid"}]}], "\[IndentingNewLine]", "]"}]}]], "Input"],
 
-Cell["Apply statistics to everything!", "Text"],
+Cell["Obtain all the statistics.", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"stats", "=", 
+   RowBox[{"ExtractStats", "[", 
+    RowBox[{"workingperturbed", ",", "index"}], "]"}]}], ";"}]], "Input"],
+
+Cell["Find any points with suspiciously large standard deviations.", "Text"],
 
 Cell[BoxData[{
  RowBox[{
-  RowBox[{"stats", "=", "flattenedgrid"}], ";"}], "\[IndentingNewLine]", 
- RowBox[{"For", "[", 
-  RowBox[{
-   RowBox[{"i", "=", "1"}], ",", 
-   RowBox[{"i", "\[LessEqual]", 
-    RowBox[{"Length", "[", "stats", "]"}]}], ",", 
-   RowBox[{"i", "++"}], ",", "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"results", "=", 
-     RowBox[{"extractstats", "[", 
-      RowBox[{"stats", "[", 
-       RowBox[{"[", "i", "]"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+  RowBox[{"FindPoints", "[", 
+   RowBox[{"data_", ",", "entry_"}], "]"}], ":=", 
+  RowBox[{"data", "[", 
+   RowBox[{"[", 
+    RowBox[{"Flatten", "[", 
+     RowBox[{"Position", "[", 
+      RowBox[{
+       RowBox[{"data", "[", 
+        RowBox[{"[", 
+         RowBox[{";;", ",", 
+          RowBox[{"{", 
+           RowBox[{"1", ",", "2"}], "}"}]}], "]"}], "]"}], ",", 
+       RowBox[{"entry", "[", 
+        RowBox[{"[", 
+         RowBox[{"1", ";;", "2"}], "]"}], "]"}]}], "]"}], "]"}], "]"}], 
+   "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{"badpoints", "=", 
+  RowBox[{"Select", "[", 
+   RowBox[{"stats", ",", 
     RowBox[{
-     RowBox[{"stats", "[", 
-      RowBox[{"[", 
-       RowBox[{"i", ",", "3"}], "]"}], "]"}], "=", 
-     RowBox[{"results", "[", 
-      RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
-    RowBox[{"AppendTo", "[", 
      RowBox[{
-      RowBox[{"stats", "[", 
-       RowBox[{"[", "i", "]"}], "]"}], ",", 
-      RowBox[{"results", "[", 
-       RowBox[{"[", "2", "]"}], "]"}]}], "]"}], ";", "\[IndentingNewLine]", 
-    RowBox[{"AppendTo", "[", 
-     RowBox[{
-      RowBox[{"stats", "[", 
-       RowBox[{"[", "i", "]"}], "]"}], ",", 
-      RowBox[{"results", "[", 
-       RowBox[{"[", "3", "]"}], "]"}]}], "]"}], ";", "\[IndentingNewLine]", 
-    RowBox[{"AppendTo", "[", 
-     RowBox[{
-      RowBox[{"stats", "[", 
-       RowBox[{"[", "i", "]"}], "]"}], ",", 
-      RowBox[{"results", "[", 
-       RowBox[{"[", "4", "]"}], "]"}]}], "]"}], ";"}]}], 
-  "\[IndentingNewLine]", "]"}]}], "Input"],
+      RowBox[{"#", "[", 
+       RowBox[{"[", "4", "]"}], "]"}], ">", "1.0"}], "&"}]}], 
+   "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{"Map", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"FindPoints", "[", 
+     RowBox[{"data", ",", "#"}], "]"}], "&"}], ",", "badpoints"}], 
+  "]"}]}], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Plotting", "Subsubsection"],
 
 Cell["\<\
-stats now contains a list of {phi0, phi0dot, mean, mean+sd, mean-sd, sd} \
-points.\
+stats now contains a list of {phi0, phi0dot, mean, \[Sigma]} values.\
 \>", "Text"],
 
-Cell[BoxData[{
- RowBox[{
-  RowBox[{"means", "=", 
-   RowBox[{"ListPlot3D", "[", "\[IndentingNewLine]", 
-    RowBox[{
-     RowBox[{"stats", "[", 
-      RowBox[{"[", 
-       RowBox[{";;", ",", 
-        RowBox[{"{", 
-         RowBox[{"1", ",", "2", ",", "3"}], "}"}]}], "]"}], "]"}], ",", 
-     "\[IndentingNewLine]", 
-     RowBox[{"AxesLabel", "\[Rule]", 
-      RowBox[{"{", 
-       RowBox[{
-        RowBox[{"names", "[", 
-         RowBox[{"[", "1", "]"}], "]"}], ",", 
-        RowBox[{"names", "[", 
-         RowBox[{"[", "2", "]"}], "]"}], ",", 
-        RowBox[{"names", "[", 
-         RowBox[{"[", "7", "]"}], "]"}]}], "}"}]}], ",", 
-     RowBox[{"ColorFunction", "\[Rule]", 
-      RowBox[{"Function", "[", 
-       RowBox[{
-        RowBox[{"{", 
-         RowBox[{"x", ",", "y", ",", "z"}], "}"}], ",", 
-        RowBox[{"Hue", "[", 
-         RowBox[{".65", 
-          RowBox[{"(", 
-           RowBox[{"1", "-", "z"}], ")"}]}], "]"}]}], "]"}]}]}], 
-    "\[IndentingNewLine]", "]"}]}], ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"meansplus", "=", 
-   RowBox[{"ListPlot3D", "[", "\[IndentingNewLine]", 
-    RowBox[{
-     RowBox[{"stats", "[", 
-      RowBox[{"[", 
-       RowBox[{";;", ",", 
-        RowBox[{"{", 
-         RowBox[{"1", ",", "2", ",", "4"}], "}"}]}], "]"}], "]"}], ",", 
-     "\[IndentingNewLine]", 
-     RowBox[{"AxesLabel", "\[Rule]", 
-      RowBox[{"{", 
-       RowBox[{
-        RowBox[{"names", "[", 
-         RowBox[{"[", "1", "]"}], "]"}], ",", 
-        RowBox[{"names", "[", 
-         RowBox[{"[", "2", "]"}], "]"}], ",", 
-        RowBox[{"names", "[", 
-         RowBox[{"[", "7", "]"}], "]"}]}], "}"}]}], ",", 
-     RowBox[{"ColorFunction", "\[Rule]", 
-      RowBox[{"Function", "[", 
-       RowBox[{
-        RowBox[{"{", 
-         RowBox[{"x", ",", "y", ",", "z"}], "}"}], ",", 
-        RowBox[{"RGBColor", "[", 
-         RowBox[{"0.5", ",", "0.5", ",", "0.5", ",", "0.3"}], "]"}]}], 
-       "]"}]}]}], "\[IndentingNewLine]", "]"}]}], 
-  ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"meansminus", "=", 
-   RowBox[{"ListPlot3D", "[", "\[IndentingNewLine]", 
-    RowBox[{
-     RowBox[{"stats", "[", 
-      RowBox[{"[", 
-       RowBox[{";;", ",", 
-        RowBox[{"{", 
-         RowBox[{"1", ",", "2", ",", "5"}], "}"}]}], "]"}], "]"}], ",", 
-     "\[IndentingNewLine]", 
-     RowBox[{"AxesLabel", "\[Rule]", 
-      RowBox[{"{", 
-       RowBox[{
-        RowBox[{"names", "[", 
-         RowBox[{"[", "1", "]"}], "]"}], ",", 
-        RowBox[{"names", "[", 
-         RowBox[{"[", "2", "]"}], "]"}], ",", 
-        RowBox[{"names", "[", 
-         RowBox[{"[", "7", "]"}], "]"}]}], "}"}]}], ",", 
-     RowBox[{"ColorFunction", "\[Rule]", 
-      RowBox[{"Function", "[", 
-       RowBox[{
-        RowBox[{"{", 
-         RowBox[{"x", ",", "y", ",", "z"}], "}"}], ",", 
-        RowBox[{"RGBColor", "[", 
-         RowBox[{"0.5", ",", "0.5", ",", "0.5", ",", "0.3"}], "]"}]}], 
-       "]"}]}]}], "\[IndentingNewLine]", "]"}]}], ";"}]}], "Input"],
+Cell["\<\
+Here is a function to add a specified number of standard deviations to the \
+means, returning data ready for plotting.\
+\>", "Text"],
 
 Cell[BoxData[
- RowBox[{"Show", "[", 
-  RowBox[{"means", ",", "meansplus", ",", "meansminus"}], "]"}]], "Input"],
+ RowBox[{
+  RowBox[{"Add\[Sigma]", "[", 
+   RowBox[{"data_", ",", "\[Sigma]s_"}], "]"}], ":=", 
+  RowBox[{"Module", "[", 
+   RowBox[{
+    RowBox[{"{", "result", "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"result", "=", 
+      RowBox[{"{", "}"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"For", "[", 
+      RowBox[{
+       RowBox[{"i", "=", "1"}], ",", 
+       RowBox[{"i", "\[LessEqual]", 
+        RowBox[{"Length", "[", "data", "]"}]}], ",", 
+       RowBox[{"i", "++"}], ",", "\[IndentingNewLine]", 
+       RowBox[{"AppendTo", "[", 
+        RowBox[{"result", ",", 
+         RowBox[{
+          RowBox[{"data", "[", 
+           RowBox[{"[", 
+            RowBox[{"i", ",", 
+             RowBox[{"{", 
+              RowBox[{"1", ",", "2"}], "}"}]}], "]"}], "]"}], "~", "Join", 
+          "~", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"data", "[", 
+             RowBox[{"[", 
+              RowBox[{"i", ",", "3"}], "]"}], "]"}], "+", 
+            RowBox[{"\[Sigma]s", " ", 
+             RowBox[{"data", "[", 
+              RowBox[{"[", 
+               RowBox[{"i", ",", "4"}], "]"}], "]"}]}]}], "}"}]}]}], "]"}]}], 
+      "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", "result"}]}], 
+   "\[IndentingNewLine]", "]"}]}]], "Input"],
 
-Cell["Here are the standard deviations by themselves.", "Text"],
+Cell["Here are the means.", "Text"],
 
 Cell[BoxData[
- RowBox[{"sds", "=", 
+ RowBox[{"means", "=", 
+  RowBox[{"ListPlot3D", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Add\[Sigma]", "[", 
+     RowBox[{"stats", ",", "0"}], "]"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"AxesLabel", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"names", "[", 
+        RowBox[{"[", "1", "]"}], "]"}], ",", 
+       RowBox[{"names", "[", 
+        RowBox[{"[", "2", "]"}], "]"}], ",", 
+       RowBox[{"names", "[", 
+        RowBox[{"[", "index", "]"}], "]"}]}], "}"}]}], ",", 
+    RowBox[{"ColorFunction", "\[Rule]", 
+     RowBox[{"Function", "[", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"x", ",", "y", ",", "z"}], "}"}], ",", 
+       RowBox[{"Hue", "[", 
+        RowBox[{".65", 
+         RowBox[{"(", 
+          RowBox[{"1", "-", "z"}], ")"}]}], "]"}]}], "]"}]}]}], 
+   "\[IndentingNewLine]", "]"}]}]], "Input"],
+
+Cell["Here are the standard deviations.", "Text"],
+
+Cell[BoxData[
+ RowBox[{"\[Sigma]s", "=", 
   RowBox[{"ListPlot3D", "[", "\[IndentingNewLine]", 
    RowBox[{
     RowBox[{"stats", "[", 
      RowBox[{"[", 
       RowBox[{";;", ",", 
        RowBox[{"{", 
-        RowBox[{"1", ",", "2", ",", "6"}], "}"}]}], "]"}], "]"}], ",", 
+        RowBox[{"1", ",", "2", ",", "4"}], "}"}]}], "]"}], "]"}], ",", 
     "\[IndentingNewLine]", 
     RowBox[{"AxesLabel", "\[Rule]", 
      RowBox[{"{", 
@@ -472,46 +624,79 @@ Cell[BoxData[
           RowBox[{"1", "-", "z"}], ")"}]}], "]"}]}], "]"}]}]}], 
    "\[IndentingNewLine]", "]"}]}]], "Input"],
 
+Cell["\<\
+We can compare the means to Bunch-Davies and the critical plane.\
+\>", "Text"],
+
 Cell[BoxData[
  RowBox[{"Show", "[", 
   RowBox[{"means", ",", "bdplot", ",", "critplane"}], "]"}]], "Input"],
 
-Cell["Find outliers (in case of any problem runs).", "Text"],
+Cell["Here\[CloseCurlyQuote]s a contour plot of the means.", "Text"],
 
 Cell[BoxData[
- RowBox[{"testing", "=", 
+ RowBox[{"ListContourPlot", "[", 
   RowBox[{
-   RowBox[{"Select", "[", 
-    RowBox[{
-     RowBox[{"stats", "[", 
-      RowBox[{"[", 
-       RowBox[{";;", ",", 
-        RowBox[{"{", 
-         RowBox[{"1", ",", "2", ",", "6"}], "}"}]}], "]"}], "]"}], ",", 
+   RowBox[{"Add\[Sigma]", "[", 
+    RowBox[{"stats", ",", "0"}], "]"}], ",", 
+   RowBox[{"Contours", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"45", ",", "50", ",", "55", ",", "60", ",", "65", ",", "70"}], 
+     "}"}]}], ",", 
+   RowBox[{"PlotLegends", "\[Rule]", "Automatic"}], ",", 
+   RowBox[{"FrameLabel", "\[Rule]", 
+    RowBox[{"{", 
      RowBox[{
-      RowBox[{
-       RowBox[{"#", "[", 
-        RowBox[{"[", "3", "]"}], "]"}], ">", "1"}], "&"}]}], "]"}], "[", 
-   RowBox[{"[", "1", "]"}], "]"}]}]], "Input"],
+      RowBox[{"names", "[", 
+       RowBox[{"[", "1", "]"}], "]"}], ",", 
+      RowBox[{"names", "[", 
+       RowBox[{"[", "2", "]"}], "]"}]}], "}"}]}]}], "]"}]], "Input"],
 
-Cell[BoxData[
- RowBox[{"grid", "[", 
-  RowBox[{"[", 
-   RowBox[{
-    RowBox[{"FindIndex", "[", 
-     RowBox[{
-      RowBox[{"testing", "[", 
-       RowBox[{"[", "1", "]"}], "]"}], ",", "\[Phi]0vals"}], "]"}], ",", 
-    RowBox[{"FindIndex", "[", 
-     RowBox[{
-      RowBox[{"testing", "[", 
-       RowBox[{"[", "2", "]"}], "]"}], ",", "\[Phi]0dotvals"}], "]"}]}], 
-   "]"}], "]"}]], "Input"]
+Cell["\<\
+Here\[CloseCurlyQuote]s the critical line for the means, means +- 2\[Sigma], \
+the Bunch-Davies result in red, and the Hartree off result in blue.\
+\>", "Text"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"pm", "=", "2"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Show", "[", 
+  RowBox[{
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"ListContourPlot", "[", 
+      RowBox[{
+       RowBox[{"Add\[Sigma]", "[", 
+        RowBox[{"stats", ",", "i"}], "]"}], ",", 
+       RowBox[{"Contours", "\[Rule]", 
+        RowBox[{"{", "criticalEfolds", "}"}]}], ",", 
+       RowBox[{"FrameLabel", "\[Rule]", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"names", "[", 
+           RowBox[{"[", "1", "]"}], "]"}], ",", 
+          RowBox[{"names", "[", 
+           RowBox[{"[", "2", "]"}], "]"}]}], "}"}]}], ",", 
+       RowBox[{"ColorFunction", "\[Rule]", 
+        RowBox[{"Function", "[", 
+         RowBox[{
+          RowBox[{"{", 
+           RowBox[{"x", ",", "y", ",", "z"}], "}"}], ",", 
+          RowBox[{"RGBColor", "[", 
+           RowBox[{"1", ",", "1", ",", "1", ",", "0"}], "]"}]}], "]"}]}]}], 
+      "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"i", ",", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", "pm", ",", 
+         RowBox[{"-", "pm"}]}], "}"}]}], "}"}]}], "]"}], ",", "BDline", ",", 
+   "Offline"}], "]"}]}], "Input"]
+}, Open  ]]
 }, Open  ]]
 }, Open  ]]
 },
 WindowSize->{1592, 995},
-WindowMargins->{{Automatic, 155}, {37, Automatic}},
+WindowMargins->{{Automatic, 39}, {35, Automatic}},
 TrackCellChangeTimes->False,
 Magnification:>1.5 Inherited,
 FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (July 28, \
@@ -534,43 +719,67 @@ Cell[580, 22, 39, 0, 95, "Section"],
 Cell[622, 24, 42, 0, 46, "Text"],
 Cell[667, 26, 123, 3, 48, "Input"],
 Cell[793, 31, 28, 0, 46, "Text"],
-Cell[824, 33, 125, 3, 48, "Input"],
-Cell[952, 38, 251, 13, 371, "Text"],
-Cell[1206, 53, 557, 12, 51, "Input"],
-Cell[1766, 67, 757, 19, 173, "Input"],
+Cell[824, 33, 131, 4, 48, "Input"],
+Cell[958, 39, 251, 13, 371, "Text"],
+Cell[1212, 54, 53, 0, 46, "Text"],
+Cell[1268, 56, 71, 2, 48, "Input"],
+Cell[1342, 60, 557, 12, 51, "Input"],
+Cell[1902, 74, 757, 19, 173, "Input"],
+Cell[2662, 95, 57, 0, 46, "Text"],
+Cell[2722, 97, 626, 19, 111, "Input"],
 Cell[CellGroupData[{
-Cell[2548, 90, 31, 0, 65, "Subsection"],
-Cell[2582, 92, 45, 0, 46, "Text"],
-Cell[2630, 94, 1305, 39, 204, "Input"],
-Cell[3938, 135, 96, 2, 46, "Text"],
-Cell[4037, 139, 272, 8, 48, "Input"]
+Cell[3373, 120, 31, 0, 65, "Subsection"],
+Cell[3407, 122, 45, 0, 46, "Text"],
+Cell[3455, 124, 1305, 39, 204, "Input"],
+Cell[4763, 165, 96, 2, 46, "Text"],
+Cell[4862, 169, 272, 8, 48, "Input"],
+Cell[5137, 179, 68, 0, 46, "Text"],
+Cell[5208, 181, 264, 8, 48, "Input"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[4346, 152, 34, 0, 65, "Subsection"],
-Cell[4383, 154, 1313, 35, 266, "Input"]
+Cell[5509, 194, 33, 0, 65, "Subsection"],
+Cell[5545, 196, 1267, 33, 235, "Input"],
+Cell[6815, 231, 52, 0, 46, "Text"],
+Cell[6870, 233, 597, 16, 80, "Input"],
+Cell[7470, 251, 42, 0, 46, "Text"],
+Cell[7515, 253, 844, 22, 80, "Input"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[5733, 194, 31, 0, 65, "Subsection"],
-Cell[5767, 196, 119, 3, 48, "Input"],
-Cell[5889, 201, 57, 0, 46, "Text"],
-Cell[5949, 203, 506, 16, 80, "Input"],
-Cell[6458, 221, 68, 0, 46, "Text"],
-Cell[6529, 223, 264, 8, 48, "Input"],
-Cell[6796, 233, 93, 2, 46, "Text"],
-Cell[6892, 237, 1257, 38, 235, "Input"],
-Cell[8152, 277, 88, 2, 46, "Text"],
-Cell[8243, 281, 825, 23, 204, "Input"],
-Cell[9071, 306, 47, 0, 46, "Text"],
-Cell[9121, 308, 1398, 38, 266, "Input"],
-Cell[10522, 348, 106, 3, 46, "Text"],
-Cell[10631, 353, 2965, 84, 390, "Input"],
-Cell[13599, 439, 111, 2, 48, "Input"],
-Cell[13713, 443, 63, 0, 46, "Text"],
-Cell[13779, 445, 906, 27, 142, "Input"],
-Cell[14688, 474, 107, 2, 48, "Input"],
-Cell[14798, 478, 60, 0, 46, "Text"],
-Cell[14861, 480, 436, 14, 48, "Input"],
-Cell[15300, 496, 391, 12, 48, "Input"]
+Cell[8396, 280, 34, 0, 65, "Subsection"],
+Cell[8433, 282, 1268, 34, 235, "Input"],
+Cell[9704, 318, 52, 0, 46, "Text"],
+Cell[9759, 320, 596, 16, 80, "Input"],
+Cell[10358, 338, 42, 0, 46, "Text"],
+Cell[10403, 340, 841, 22, 80, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[11281, 367, 31, 0, 65, "Subsection"],
+Cell[CellGroupData[{
+Cell[11337, 371, 45, 0, 52, "Subsubsection"],
+Cell[11385, 373, 128, 3, 48, "Input"],
+Cell[11516, 378, 144, 3, 46, "Text"],
+Cell[11663, 383, 3411, 88, 638, "Input"],
+Cell[15077, 473, 42, 0, 46, "Text"],
+Cell[15122, 475, 155, 4, 48, "Input"],
+Cell[15280, 481, 76, 0, 46, "Text"],
+Cell[15359, 483, 947, 31, 111, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[16343, 519, 33, 0, 52, "Subsubsection"],
+Cell[16379, 521, 92, 2, 46, "Text"],
+Cell[16474, 525, 142, 3, 46, "Text"],
+Cell[16619, 530, 1295, 35, 235, "Input"],
+Cell[17917, 567, 35, 0, 46, "Text"],
+Cell[17955, 569, 868, 24, 142, "Input"],
+Cell[18826, 595, 49, 0, 46, "Text"],
+Cell[18878, 597, 912, 27, 142, "Input"],
+Cell[19793, 626, 88, 2, 46, "Text"],
+Cell[19884, 630, 107, 2, 48, "Input"],
+Cell[19994, 634, 68, 0, 46, "Text"],
+Cell[20065, 636, 585, 16, 80, "Input"],
+Cell[20653, 654, 170, 3, 46, "Text"],
+Cell[20826, 659, 1170, 33, 111, "Input"]
+}, Open  ]]
 }, Open  ]]
 }, Open  ]]
 }
