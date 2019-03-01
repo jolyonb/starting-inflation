@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     17501,        571]
-NotebookOptionsPosition[     15719,        512]
-NotebookOutlinePosition[     16134,        530]
-CellTagsIndexPosition[     16091,        527]
+NotebookDataLength[     20860,        673]
+NotebookOptionsPosition[     18812,        607]
+NotebookOutlinePosition[     19226,        625]
+CellTagsIndexPosition[     19183,        622]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -187,7 +187,53 @@ Cell[BoxData[{
          "]"}]}], "]"}]}]}], "\[IndentingNewLine]", "]"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{"Show", "[", 
-  RowBox[{"bdplot", ",", "critplane"}], "]"}]}], "Input"]
+  RowBox[{"bdplot", ",", "critplane"}], "]"}]}], "Input"],
+
+Cell["Same thing, but in ContourPlot form.", "Text"],
+
+Cell[BoxData[
+ RowBox[{"ListContourPlot", "[", 
+  RowBox[{
+   RowBox[{"SelectQuantity", "[", 
+    RowBox[{"working", ",", "index"}], "]"}], ",", 
+   RowBox[{"Contours", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"45", ",", "50", ",", "55", ",", "60", ",", "65", ",", "70"}], 
+     "}"}]}], ",", 
+   RowBox[{"PlotLegends", "\[Rule]", "Automatic"}], ",", 
+   RowBox[{"FrameLabel", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"names", "[", 
+       RowBox[{"[", "1", "]"}], "]"}], ",", 
+      RowBox[{"names", "[", 
+       RowBox[{"[", "2", "]"}], "]"}]}], "}"}]}]}], "]"}]], "Input"],
+
+Cell["This is the N=65 line.", "Text"],
+
+Cell[BoxData[
+ RowBox[{"BDline", "=", 
+  RowBox[{"ListContourPlot", "[", 
+   RowBox[{
+    RowBox[{"SelectQuantity", "[", 
+     RowBox[{"working", ",", "index"}], "]"}], ",", 
+    RowBox[{"Contours", "\[Rule]", 
+     RowBox[{"{", "65", "}"}]}], ",", 
+    RowBox[{"FrameLabel", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"names", "[", 
+        RowBox[{"[", "1", "]"}], "]"}], ",", 
+       RowBox[{"names", "[", 
+        RowBox[{"[", "2", "]"}], "]"}]}], "}"}]}], ",", 
+    RowBox[{"ColorFunction", "\[Rule]", 
+     RowBox[{"Function", "[", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"x", ",", "y", ",", "z"}], "}"}], ",", 
+       RowBox[{"RGBColor", "[", 
+        RowBox[{"1", ",", "1", ",", "1", ",", "0"}], "]"}]}], "]"}]}], ",", 
+    RowBox[{"ContourStyle", "\[Rule]", "Red"}]}], "]"}]}]], "Input"]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -301,8 +347,12 @@ Cell[BoxData[
      RowBox[{"{", 
       RowBox[{"mean", ",", 
        RowBox[{"mean", "+", "sd"}], ",", 
-       RowBox[{"mean", "-", "sd"}], ",", "sd"}], "}"}]}]}], 
-   "\[IndentingNewLine]", "]"}]}]], "Input"],
+       RowBox[{"mean", "-", "sd"}], ",", "sd", ",", 
+       RowBox[{"mean", "+", 
+        RowBox[{"2", " ", "sd"}]}], ",", " ", 
+       RowBox[{"mean", "-", 
+        RowBox[{"2", " ", "sd"}]}]}], "}"}]}]}], "\[IndentingNewLine]", 
+   "]"}]}]], "Input"],
 
 Cell["Apply statistics to everything!", "Text"],
 
@@ -316,39 +366,21 @@ Cell[BoxData[{
     RowBox[{"Length", "[", "stats", "]"}]}], ",", 
    RowBox[{"i", "++"}], ",", "\[IndentingNewLine]", 
    RowBox[{
-    RowBox[{"results", "=", 
-     RowBox[{"extractstats", "[", 
-      RowBox[{"stats", "[", 
-       RowBox[{"[", "i", "]"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"stats", "[", 
+     RowBox[{"[", "i", "]"}], "]"}], "=", 
     RowBox[{
      RowBox[{"stats", "[", 
       RowBox[{"[", 
-       RowBox[{"i", ",", "3"}], "]"}], "]"}], "=", 
-     RowBox[{"results", "[", 
-      RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
-    RowBox[{"AppendTo", "[", 
-     RowBox[{
+       RowBox[{"i", ",", 
+        RowBox[{"1", ";;", "2"}]}], "]"}], "]"}], "~", "Join", "~", 
+     RowBox[{"extractstats", "[", 
       RowBox[{"stats", "[", 
-       RowBox[{"[", "i", "]"}], "]"}], ",", 
-      RowBox[{"results", "[", 
-       RowBox[{"[", "2", "]"}], "]"}]}], "]"}], ";", "\[IndentingNewLine]", 
-    RowBox[{"AppendTo", "[", 
-     RowBox[{
-      RowBox[{"stats", "[", 
-       RowBox[{"[", "i", "]"}], "]"}], ",", 
-      RowBox[{"results", "[", 
-       RowBox[{"[", "3", "]"}], "]"}]}], "]"}], ";", "\[IndentingNewLine]", 
-    RowBox[{"AppendTo", "[", 
-     RowBox[{
-      RowBox[{"stats", "[", 
-       RowBox[{"[", "i", "]"}], "]"}], ",", 
-      RowBox[{"results", "[", 
-       RowBox[{"[", "4", "]"}], "]"}]}], "]"}], ";"}]}], 
-  "\[IndentingNewLine]", "]"}]}], "Input"],
+       RowBox[{"[", "i", "]"}], "]"}], "]"}]}]}]}], "\[IndentingNewLine]", 
+  "]"}]}], "Input"],
 
 Cell["\<\
-stats now contains a list of {phi0, phi0dot, mean, mean+sd, mean-sd, sd} \
-points.\
+stats now contains a list of {phi0, phi0dot, mean, mean+sd, mean-sd, sd, \
+mean+2sd, mean-2sd} points.\
 \>", "Text"],
 
 Cell[BoxData[{
@@ -476,42 +508,105 @@ Cell[BoxData[
  RowBox[{"Show", "[", 
   RowBox[{"means", ",", "bdplot", ",", "critplane"}], "]"}]], "Input"],
 
+Cell["Here\[CloseCurlyQuote]s a contour plot of the means.", "Text"],
+
+Cell[BoxData[
+ RowBox[{"ListContourPlot", "[", 
+  RowBox[{
+   RowBox[{"stats", "[", 
+    RowBox[{"[", 
+     RowBox[{";;", ",", 
+      RowBox[{"{", 
+       RowBox[{"1", ",", "2", ",", "3"}], "}"}]}], "]"}], "]"}], ",", 
+   RowBox[{"Contours", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"45", ",", "50", ",", "55", ",", "60", ",", "65", ",", "70"}], 
+     "}"}]}], ",", 
+   RowBox[{"PlotLegends", "\[Rule]", "Automatic"}], ",", 
+   RowBox[{"FrameLabel", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"names", "[", 
+       RowBox[{"[", "1", "]"}], "]"}], ",", 
+      RowBox[{"names", "[", 
+       RowBox[{"[", "2", "]"}], "]"}]}], "}"}]}]}], "]"}]], "Input"],
+
+Cell["\<\
+Here\[CloseCurlyQuote]s the N=65 line for the means, means +- 2\[Sigma], and \
+the Bunch-Davies result in red.\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{"Show", "[", 
+  RowBox[{
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"ListContourPlot", "[", 
+      RowBox[{
+       RowBox[{"stats", "[", 
+        RowBox[{"[", 
+         RowBox[{";;", ",", 
+          RowBox[{"{", 
+           RowBox[{"1", ",", "2", ",", "i"}], "}"}]}], "]"}], "]"}], ",", 
+       RowBox[{"Contours", "\[Rule]", 
+        RowBox[{"{", "65", "}"}]}], ",", 
+       RowBox[{"FrameLabel", "\[Rule]", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"names", "[", 
+           RowBox[{"[", "1", "]"}], "]"}], ",", 
+          RowBox[{"names", "[", 
+           RowBox[{"[", "2", "]"}], "]"}]}], "}"}]}], ",", 
+       RowBox[{"ColorFunction", "\[Rule]", 
+        RowBox[{"Function", "[", 
+         RowBox[{
+          RowBox[{"{", 
+           RowBox[{"x", ",", "y", ",", "z"}], "}"}], ",", 
+          RowBox[{"RGBColor", "[", 
+           RowBox[{"1", ",", "1", ",", "1", ",", "0"}], "]"}]}], "]"}]}]}], 
+      "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"i", ",", 
+       RowBox[{"{", 
+        RowBox[{"3", ",", "7", ",", "8"}], "}"}]}], "}"}]}], "]"}], ",", 
+   "BDline"}], "]"}]], "Input"],
+
 Cell["Find outliers (in case of any problem runs).", "Text"],
 
 Cell[BoxData[
- RowBox[{"testing", "=", 
-  RowBox[{
-   RowBox[{"Select", "[", 
-    RowBox[{
-     RowBox[{"stats", "[", 
-      RowBox[{"[", 
-       RowBox[{";;", ",", 
-        RowBox[{"{", 
-         RowBox[{"1", ",", "2", ",", "6"}], "}"}]}], "]"}], "]"}], ",", 
-     RowBox[{
-      RowBox[{
-       RowBox[{"#", "[", 
-        RowBox[{"[", "3", "]"}], "]"}], ">", "1"}], "&"}]}], "]"}], "[", 
-   RowBox[{"[", "1", "]"}], "]"}]}]], "Input"],
-
-Cell[BoxData[
- RowBox[{"grid", "[", 
-  RowBox[{"[", 
+ RowBox[{"(*", 
+  RowBox[{"testing", "=", 
    RowBox[{
-    RowBox[{"FindIndex", "[", 
-     RowBox[{
-      RowBox[{"testing", "[", 
-       RowBox[{"[", "1", "]"}], "]"}], ",", "\[Phi]0vals"}], "]"}], ",", 
-    RowBox[{"FindIndex", "[", 
-     RowBox[{
-      RowBox[{"testing", "[", 
-       RowBox[{"[", "2", "]"}], "]"}], ",", "\[Phi]0dotvals"}], "]"}]}], 
-   "]"}], "]"}]], "Input"]
+    RowBox[{
+     RowBox[{"Select", "[", 
+      RowBox[{
+       RowBox[{"stats", "[", 
+        RowBox[{"[", 
+         RowBox[{";;", ",", 
+          RowBox[{"{", 
+           RowBox[{"1", ",", "2", ",", "6"}], "}"}]}], "]"}], "]"}], ",", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"#", "[", 
+          RowBox[{"[", "3", "]"}], "]"}], ">", "1"}], "&"}]}], "]"}], "[", 
+     RowBox[{"[", "1", "]"}], "]"}], "\n", 
+    RowBox[{"grid", "[", 
+     RowBox[{"[", 
+      RowBox[{
+       RowBox[{"FindIndex", "[", 
+        RowBox[{
+         RowBox[{"testing", "[", 
+          RowBox[{"[", "1", "]"}], "]"}], ",", "\[Phi]0vals"}], "]"}], ",", 
+       RowBox[{"FindIndex", "[", 
+        RowBox[{
+         RowBox[{"testing", "[", 
+          RowBox[{"[", "2", "]"}], "]"}], ",", "\[Phi]0dotvals"}], "]"}]}], 
+      "]"}], "]"}]}]}], "*)"}]], "Input"]
 }, Open  ]]
 }, Open  ]]
 },
 WindowSize->{1592, 995},
-WindowMargins->{{Automatic, 155}, {37, Automatic}},
+WindowMargins->{{Automatic, 39}, {35, Automatic}},
 TrackCellChangeTimes->False,
 Magnification:>1.5 Inherited,
 FrontEndVersion->"11.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (July 28, \
@@ -547,30 +642,37 @@ Cell[4037, 139, 272, 8, 48, "Input"]
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[4346, 152, 34, 0, 65, "Subsection"],
-Cell[4383, 154, 1313, 35, 266, "Input"]
+Cell[4383, 154, 1313, 35, 266, "Input"],
+Cell[5699, 191, 52, 0, 46, "Text"],
+Cell[5754, 193, 594, 16, 80, "Input"],
+Cell[6351, 211, 38, 0, 46, "Text"],
+Cell[6392, 213, 827, 22, 80, "Input"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[5733, 194, 31, 0, 65, "Subsection"],
-Cell[5767, 196, 119, 3, 48, "Input"],
-Cell[5889, 201, 57, 0, 46, "Text"],
-Cell[5949, 203, 506, 16, 80, "Input"],
-Cell[6458, 221, 68, 0, 46, "Text"],
-Cell[6529, 223, 264, 8, 48, "Input"],
-Cell[6796, 233, 93, 2, 46, "Text"],
-Cell[6892, 237, 1257, 38, 235, "Input"],
-Cell[8152, 277, 88, 2, 46, "Text"],
-Cell[8243, 281, 825, 23, 204, "Input"],
-Cell[9071, 306, 47, 0, 46, "Text"],
-Cell[9121, 308, 1398, 38, 266, "Input"],
-Cell[10522, 348, 106, 3, 46, "Text"],
-Cell[10631, 353, 2965, 84, 390, "Input"],
-Cell[13599, 439, 111, 2, 48, "Input"],
-Cell[13713, 443, 63, 0, 46, "Text"],
-Cell[13779, 445, 906, 27, 142, "Input"],
-Cell[14688, 474, 107, 2, 48, "Input"],
-Cell[14798, 478, 60, 0, 46, "Text"],
-Cell[14861, 480, 436, 14, 48, "Input"],
-Cell[15300, 496, 391, 12, 48, "Input"]
+Cell[7256, 240, 31, 0, 65, "Subsection"],
+Cell[7290, 242, 119, 3, 48, "Input"],
+Cell[7412, 247, 57, 0, 46, "Text"],
+Cell[7472, 249, 506, 16, 80, "Input"],
+Cell[7981, 267, 68, 0, 46, "Text"],
+Cell[8052, 269, 264, 8, 48, "Input"],
+Cell[8319, 279, 93, 2, 46, "Text"],
+Cell[8415, 283, 1257, 38, 235, "Input"],
+Cell[9675, 323, 88, 2, 46, "Text"],
+Cell[9766, 327, 972, 27, 204, "Input"],
+Cell[10741, 356, 47, 0, 46, "Text"],
+Cell[10791, 358, 700, 20, 142, "Input"],
+Cell[11494, 380, 126, 3, 46, "Text"],
+Cell[11623, 385, 2965, 84, 390, "Input"],
+Cell[14591, 471, 111, 2, 48, "Input"],
+Cell[14705, 475, 63, 0, 46, "Text"],
+Cell[14771, 477, 906, 27, 142, "Input"],
+Cell[15680, 506, 107, 2, 48, "Input"],
+Cell[15790, 510, 68, 0, 46, "Text"],
+Cell[15861, 512, 667, 19, 80, "Input"],
+Cell[16531, 533, 134, 3, 46, "Text"],
+Cell[16668, 538, 1138, 33, 80, "Input"],
+Cell[17809, 573, 60, 0, 46, "Text"],
+Cell[17872, 575, 912, 28, 80, "Input"]
 }, Open  ]]
 }, Open  ]]
 }
