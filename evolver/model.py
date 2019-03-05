@@ -68,6 +68,7 @@ Number of l=0 modes: {params.k_modes}
 Number of l=1 modes: {params.k_modes - 1}
 Hartree corrections on: {params.hartree}
 R_max: {params.Rmax}
+R_factor: {self.parameters['Rmaxfactor']}
 kappa: {params.kappa}
 Model: {type(params.model).__name__}
 {params.model.info()}
