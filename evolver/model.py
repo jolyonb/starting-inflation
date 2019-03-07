@@ -92,6 +92,7 @@ Initial Psi RMS: {sqrt(psi2pt)}
             "rho": rho,
             "deltarho2": deltarho2,
             "phi2pt": phi2pt,
+            "psirms": sqrt(psi2pt),
             "kappa": params.kappa
         }
 

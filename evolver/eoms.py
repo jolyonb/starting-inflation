@@ -317,7 +317,7 @@ def compute_2ptpsi(psiA, psiB, params):
     return psi2pt
 
 def compute_2ptdt(fullphidot0, params):
-    """
+    r"""
     Computes the two point function <(\delta \dot{\hat{\phi}})^2>
 
     Arguments:
@@ -334,7 +334,7 @@ def compute_2ptdt(fullphidot0, params):
     return result
 
 def compute_2pt(fullphi0, params):
-    """
+    r"""
     Computes the two point function <(\delta \hat{\phi})^2>
 
     Arguments:
@@ -351,7 +351,7 @@ def compute_2pt(fullphi0, params):
     return result
 
 def compute_2ptgrad(fullphi1, params):
-    """
+    r"""
     Computes the two point function <(\grad \delta \hat{\phi})^2>
     == h^{ij} <\partial_i \delta \hat{\phi} \partial_j \delta \hat{\phi}>
 
@@ -361,6 +361,8 @@ def compute_2ptgrad(fullphi1, params):
 
     Returns <(\grad \delta \hat{\phi})^2>
     == 1/(6 \pi R^3) \sum_k \sum_m k^2 / |j_2(kR)|^2 * |\phi|^2 e^{-k^2/(2 \kappa^2)}
+
+    Note - no 1/a^2 included here
     """
     # Do the m sum
     sumsquare = np.real(sum(fullphi1[m] * np.conj(fullphi1[m]) for m in range(3)))
