@@ -159,6 +159,7 @@ def createcsv(inifile, num_threads, outputdir, csvname):
               "rho": 0.0,
               "deltarho2": 0.0,
               "phi2pt": 0.0,
+              "psirms": 0.0,
               "efolds": 0.0,
               "kappa": 0.0,
               "infl": 0
@@ -186,7 +187,7 @@ def createcsv(inifile, num_threads, outputdir, csvname):
 
     # All data from the sweep is now stored in fulldata
     # Output it to a file!
-    template = "{phi0},{phi0dot},{H},{rho},{deltarho2},{phi2pt},{efolds},{kappa},{infl},{type},{filename}\n"
+    template = "{phi0},{phi0dot},{H},{rho},{deltarho2},{phi2pt},{psirms},{efolds},{kappa},{infl},{type},{filename}\n"
     with open(os.path.join(outputdir, csvname), "w") as f:
         for entry in fulldata:
             f.write(template.format(**entry))

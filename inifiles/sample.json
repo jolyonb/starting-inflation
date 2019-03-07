@@ -1,5 +1,5 @@
 {
-    "num_threads": 2,
+    "num_threads": 1,
     "lambda": 1e-9,
     "phi0": {
         "min": 22,
@@ -13,6 +13,6 @@
     },
     "outputdir": "data",
     "type": "hartree",
-    "hartree_runs": 2,
+    "hartree_runs": 1,
     "num_modes": 40
 }
