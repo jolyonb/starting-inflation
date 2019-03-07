@@ -42,7 +42,7 @@ for file, phi0, phi0dot in data:
     with open(file + ".quick", 'rb') as f:
         quickdata = pickle.load(f)
 
-    # The data fields we'll ick out from quickdata
+    # The data fields we'll pick out from quickdata
     plot_data = {
       "phi0": 0.0,
       "phi0dot": 0.0,
