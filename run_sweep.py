@@ -82,10 +82,10 @@ def perform_run(phi0, phi0dot, filename, hartree, bunchdavies):
 
     # Check to see what our status is
     if driver.status == Status.IntegrationError:
-        with open(fn + ".info", "a") as f:
+        with open(filename + ".info", "a") as f:
             f.write("Unable to integrate further: {}\n".format(driver.error_msg))
     elif driver.status == Status.Terminated:
-        with open(fn + ".info", "a") as f:
+        with open(filename + ".info", "a") as f:
             f.write("Evolution completed with message: {}".format(driver.error_msg))
 
 # Sweep through all the runs

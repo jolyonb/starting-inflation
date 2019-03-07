@@ -1,0 +1,18 @@
+{
+    "num_threads": 2,
+    "lambda": 1e-9,
+    "phi0": {
+        "min": 22,
+        "max": 28,
+        "steps": 2
+    },
+    "phi0dot": {
+        "min": -0.01,
+        "max": 0.01,
+        "steps": 2
+    },
+    "outputdir": "data",
+    "type": "hartree",
+    "hartree_runs": 2,
+    "num_modes": 40
+}
