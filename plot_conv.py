@@ -4,8 +4,10 @@
 Plots the results from a parameter sweep
 """
 import os
+import statistics
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d as interpolate
 from matplotlib.backends.backend_pdf import PdfPages
 from evolver.model import Model
 
@@ -23,7 +25,7 @@ with open(filename + "-info.txt") as f:
 data = []
 for line in lines[1:]:
     if line:
-        fn, _, _, Rmax = line.strip().split("\t")
+        fn, phi0, phi0dot, Rmax = line.strip().split("\t")
         data.append((fn, Rmax))
 
 # Read the data files for each run in the sweep
@@ -63,16 +65,43 @@ for file, Rmax in data:
     plot_data["phi2ptgrad"].append(phi2ptgrad)
     plot_data["psi2pt"].append(psi2pt)
 
-def make_pdf(pages, filename):
+def create_cover_sheet(canvas, stats, Rmaxfactors):
+    # Create a plot on the canvas
+    ax = canvas.add_subplot(1, 1, 1)
+
+    # Add the text we want
+    ax.text(0.05, 0.95, r'$\phi_0$ = ' + str(phi0))
+    ax.text(0.05, 0.90, r'$\dot{\phi}_0$ = ' + str(phi0dot))
+    Rmax = [str(round(i, 2)) for i in Rmaxfactors]
+    ax.text(0.05, 0.85, r'$R_{max}$ values: ' + ', '.join(Rmax))
+    ax.text(0.05, 0.80, f'$N_{{efolds}}$ = {stats["efolds"][0]:.2f} $\\pm$ {stats["efolds"][1]:.3f}')
+    ax.text(0.05, 0.75, r'Two point functions reported at ' + str(reporting) + ' efolds')
+    ax.text(0.05, 0.70, r'$\langle (\delta \phi)^2 \rangle$' + f' = {stats["phi2pt"][0]:.2e} $\\pm$ {stats["phi2pt"][1]:.2e}')
+    ax.text(0.05, 0.65, r'$\langle (\delta \dot{\phi})^2 \rangle$' + f' = {stats["phi2ptdt"][0]:.2e} $\\pm$ {stats["phi2ptdt"][1]:.2e}')
+    ax.text(0.05, 0.60, r'$\langle h^{ij} \partial_i \delta \phi \partial_j \delta \phi \rangle$' + f' = {stats["phi2ptgrad"][0]:.2e} $\\pm$ {stats["phi2ptgrad"][1]:.2e}')
+    ax.text(0.05, 0.55, r'$\langle \psi^2 \rangle$' + f' = {stats["psi2pt"][0]:.2e} $\\pm$ {stats["psi2pt"][1]:.2e}')
+
+    # Hide the ticks (this is an empty plot!)
+    ax.tick_params(
+        axis='both',
+        which='both',
+        bottom=False,
+        top=False,
+        left=False,
+        right=False,
+        labelleft=False,
+        labelbottom=False)
+
+def make_pdf(pages, stats, Rmaxfactors, filename):
     # Create the PDF file
     print(f"Creating {filename}")
     pdf_pages = PdfPages(filename)
 
     # Write the cover sheet
     plt.rcParams["font.family"] = "serif"
-    # canvas = plt.figure(figsize=(8.0, 8.0), dpi=70)
-    # create_cover_sheet(canvas)
-    # pdf_pages.savefig(canvas)
+    canvas = plt.figure(figsize=(8.0, 8.0), dpi=70)
+    create_cover_sheet(canvas, stats, Rmaxfactors)
+    pdf_pages.savefig(canvas)
 
     # Create the plots
     for idx, page in enumerate(pages):
@@ -106,7 +135,7 @@ def make_pdf(pages, filename):
             for x_series, y_series, name in zip(definition['x'], definition['y'], definition['legends']):
                 x_data = np.real(x_series)
                 y_data = np.real(y_series)
-                plt.plot(x_data, y_data, label=str(name))
+                plt.plot(x_data, y_data, label=f'{name:.2f}')
                 if x_data[-1] > maxx:
                     maxx = x_data[-1]
 
@@ -147,7 +176,11 @@ def define_fig(x_data, y_data,
         'legends': legends
     }
 
+def early(data, range=(0, 8)):
+    """Restricts the plotting range in x to the given range"""
+    return {**data, 'x_range': range}
 
+# Construct the data for the plots
 phi2ptplot = define_fig(x_data=plot_data["lna"],
                         y_data=plot_data["phi2pt"],
                         y_label=r'$\langle (\delta \phi)^2 \rangle$',
@@ -165,20 +198,68 @@ phi2ptgradplot = define_fig(x_data=plot_data["lna"],
 
 psi2ptplot = define_fig(x_data=plot_data["lna"],
                         y_data=plot_data["psi2pt"],
-                        y_label=r'$\langle (\delta \psi)^2 \rangle$',
+                        y_label=r'$\langle \psi^2 \rangle$',
                         legends=plot_data["Rmaxfactor"])
 
-print("E-folds by run:")
+# Compute statistics for cover page
+reporting = 8
 
+# Efolds
+efolds = []
 for avals in plot_data["lna"]:
-    print(avals[-1])
+    efolds.append(avals[-1])
+
+# Two point phi
+twoptphis = []
+for i in range(len(plot_data["lna"])):
+    x = plot_data["lna"][i]
+    y = plot_data["phi2pt"][i]
+    interp = interpolate(x, y)
+    twoptphis.append(float(interp(reporting)))
+
+# Two point phidot
+twoptphidots = []
+for i in range(len(plot_data["lna"])):
+    x = plot_data["lna"][i]
+    y = plot_data["phi2ptdt"][i]
+    interp = interpolate(x, y)
+    twoptphidots.append(float(interp(reporting)))
+
+# Two point phigrad
+twoptphigrads = []
+for i in range(len(plot_data["lna"])):
+    x = plot_data["lna"][i]
+    y = plot_data["phi2ptgrad"][i]
+    interp = interpolate(x, y)
+    twoptphigrads.append(float(interp(reporting)))
+
+# Two point psi
+twoptpsis = []
+for i in range(len(plot_data["lna"])):
+    x = plot_data["lna"][i]
+    y = plot_data["psi2pt"][i]
+    interp = interpolate(x, y)
+    twoptpsis.append(float(interp(reporting)))
+
+def makestats(vals):
+    return statistics.mean(vals), statistics.stdev(vals), max(vals) - min(vals)
+
+stats = {
+    "efolds": makestats(efolds),
+    "phi2pt": makestats(twoptphis),
+    "phi2ptdt": makestats(twoptphidots),
+    "phi2ptgrad": makestats(twoptphigrads),
+    "psi2pt": makestats(twoptpsis),
+}
 
 # Define the PDF layout
 pages = [
-    [phi2ptplot, phi2ptdtplot],
-    [phi2ptgradplot, psi2ptplot]
+    [early(phi2ptplot), phi2ptplot],
+    [early(phi2ptdtplot), phi2ptdtplot],
+    [early(phi2ptgradplot), phi2ptgradplot],
+    [early(psi2ptplot), psi2ptplot]
 ]
 
 # Construct the PDF
 os.chdir(olddir)
-make_pdf(pages, "convergence.pdf")
+make_pdf(pages, stats, plot_data["Rmaxfactor"], "convergence.pdf")

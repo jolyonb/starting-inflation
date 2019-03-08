@@ -63,6 +63,9 @@ for Rval, numk in zip(radii, modes):
 
     # Run the model
     parameters = create_parameters(package)
+    if parameters is None:
+        print("Unable to construct initial conditions")
+        continue
     model = Model(parameters)
     model.save(fn + ".params")
     driver = Driver(model)

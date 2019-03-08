@@ -5,6 +5,7 @@ run.py
 
 Performs an evolution
 """
+import sys
 import time
 from math import sqrt
 from evolver.integrator import Driver, Status
@@ -26,6 +27,9 @@ package = create_package(phi0=25,
                          timestepinfo=[200, 10])  # ~steps per efold (inside horizon),
                                                   # ~steps per efold (outside horizon)
 parameters = create_parameters(package)
+if parameters is None:
+    print("Unable to construct initial conditions")
+    sys.exit(1)
 
 # Create the model
 model = Model(parameters)
