@@ -69,6 +69,8 @@ def perform_run(phi0, phi0dot, filename, hartree, bunchdavies):
     package['perturbBD'] = not bunchdavies
 
     parameters = create_parameters(package)
+    if parameters is None:
+        return False
 
     # Create the model
     model = Model(parameters)
@@ -88,6 +90,8 @@ def perform_run(phi0, phi0dot, filename, hartree, bunchdavies):
         with open(filename + ".info", "a") as f:
             f.write("Evolution completed with message: {}".format(driver.error_msg))
 
+    return True
+
 # Sweep through all the runs
 for x, y in tqdm(list(itertools.product(phi0s, phi0dots))):
     run += 1
@@ -95,19 +99,19 @@ for x, y in tqdm(list(itertools.product(phi0s, phi0dots))):
     if settings["off"]:
         # Construct the filename
         fnoff = fn + "-off"
-        infofile.write("{}\t{}\t{}\n".format(fnoff, x, y))
-        perform_run(x, y, fnoff, False, True)
+        if perform_run(x, y, fnoff, False, True):
+            infofile.write("{}\t{}\t{}\n".format(fnoff, x, y))
     if settings["bunchdavies"]:
         # Construct the filename
         fnoff = fn + "-bd"
-        infofile.write("{}\t{}\t{}\n".format(fnoff, x, y))
-        perform_run(x, y, fnoff, True, True)
+        if perform_run(x, y, fnoff, True, True):
+            infofile.write("{}\t{}\t{}\n".format(fnoff, x, y))
     if settings["hartree"] > 0:
         for i in range(settings["hartree"]):
             # Construct the filename
             fnon = fn + "-" + str(i + 1)
-            infofile.write("{}\t{}\t{}\n".format(fnon, x, y))
-            perform_run(x, y, fnon, True, False)
+            if perform_run(x, y, fnon, True, False):
+                infofile.write("{}\t{}\t{}\n".format(fnon, x, y))
 
 infofile.close()
 

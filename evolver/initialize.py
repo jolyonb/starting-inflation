@@ -4,7 +4,6 @@ initialize.py
 
 Initializes parameters for a run
 """
-import sys
 import random
 import numpy as np
 from math import sqrt
@@ -86,16 +85,15 @@ def create_parameters(package):
     originalrmax = package['Rmaxfactor']
     rmax = originalrmax
     packagecopy = {**package}
-    for i in range(100):
+    for i in range(200):
         try:
             packagecopy['Rmaxfactor'] = rmax
             parameters = _create_parameters(packagecopy)
             return parameters
         except BadK:
-            # Allow rmax to vary by up to 10%
+            # Allow rmax to vary by up to 20%
             rmax = originalrmax * (1 + random.random() / 5)
-    print("Unable to find reasonable initial conditions")
-    sys.exit(0)
+    return None
 
 class BadK(Exception):
     """An exception that is raised when a bad k value is hit"""

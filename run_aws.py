@@ -102,8 +102,8 @@ def worker(directory, inifile):
             for phi0dot in phi0dots:
                 run += 1
                 fn = filename + "-{}".format(run)
-                infofile.write("{}\t{}\t{}\n".format(fn, phi0, phi0dot))
-                perform_run(phi0, phi0dot, fn, package)
+                if perform_run(phi0, phi0dot, fn, package):
+                    infofile.write("{}\t{}\t{}\n".format(fn, phi0, phi0dot))
 
     infofile.close()
 
@@ -115,6 +115,8 @@ def perform_run(phi0, phi0dot, filename, package):
 
     # Create the model
     parameters = create_parameters(package)
+    if parameters is None:
+        return False
     model = Model(parameters)
     model.save(filename + ".params")
 
@@ -131,6 +133,8 @@ def perform_run(phi0, phi0dot, filename, package):
     elif driver.status == Status.Terminated:
         with open(filename + ".info", "a") as f:
             f.write("Evolution completed with message: {}\n".format(driver.error_msg))
+
+    return True
 
 def createcsv(inifile, num_threads, outputdir, csvname):
     fulldata = []
