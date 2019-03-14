@@ -80,15 +80,15 @@ def worker(directory, inifile):
                              infmodel=LambdaPhi4(lamda=lamda),
                              end_time=5000*sqrt(1e-6/lamda),
                              basefilename=None,
-                             perturbBD=False,
-                             hartree=False,
+                             perturbBD=False,  #
+                             hartree=False,    # Hartree off settings by default
                              timestepinfo=[200, 10],
                              num_k_modes=num_modes,
                              fulloutput=False)
     # Apply settings
     if setting == "bd":
         package["hartree"] = True
-    else:
+    elif setting == "hartree":
         package["hartree"] = True
         package["perturbBD"] = True
 
