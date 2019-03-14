@@ -7,8 +7,8 @@
 # Check that a filename was supplied
 if [ -z "$1" ]
 then
-    echo "Init file SCP script"
-    echo "Usage: ./pushinit.sh filename [location]"
+    echo "Push file SCP script"
+    echo "Usage: ./push_file.sh filename [location]"
     exit 0
 fi
 
@@ -19,7 +19,7 @@ then
     exit 1
 fi
 
-# Check that the filename exists
+# Figure out the location
 if [ -z "$2" ]
 then
     location="~/"

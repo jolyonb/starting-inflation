@@ -7,6 +7,7 @@ if [ $? == 0 ]
 then
 echo "/ebs is a mountpoint"
 else
-sudo mount /dev/xvdf /ebs/
+#sudo mount /dev/xvdf /ebs/
+sudo mount /dev/nvme1n1 /ebs/
 echo "/ebs has been mounted"
 fi

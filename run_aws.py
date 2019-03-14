@@ -176,7 +176,7 @@ def createcsv(inifile, num_threads, outputdir, csvname):
 
             # Add in any extra details about this run
             plot_data["filename"] = fn
-            plot_data['infl'] = 1 if plot_data['infl'] else 0
+            plot_data['infl'] = 1 if quickdata["inflationended"] else 0
             # Type:
             # 0 = Hartree Off
             # 1 = Bunch-Davies
@@ -203,14 +203,12 @@ if __name__ == "__main__":
     # Deal with command line arguments
     parser = argparse.ArgumentParser(description="Set up a multi-process sweep")
     parser.add_argument("inifile", help=".json file to read initialization from")
+    parser.add_argument("-csv", help="Only construct CSV files (do not do full runs)", action="store_true", dest="csv", default=False)
     args = parser.parse_args()
 
     # Read the ini file
     with open(args.inifile) as f:
         inifile = json.load(f)
-    num_threads = inifile["num_threads"]
-    if inifile["type"] != "hartree":
-        num_threads = 1
     _, inifilename = os.path.split(args.inifile)
 
     # Create the directory for outputting data
@@ -221,25 +219,33 @@ if __name__ == "__main__":
     if not os.path.isdir(outputdir):
         os.mkdir(outputdir)
 
-    # Copy the inifile to this directory
-    copyfile(args.inifile, os.path.join(outputdir, inifilename))
+    # Figure out threading
+    num_threads = inifile["num_threads"]
+    if inifile["type"] != "hartree":
+        num_threads = 1
 
-    # Run all the processes
-    jobs = []
-    for i in range(1, num_threads + 1):
-        # Make the output directory for this subprocess
-        thisdir = os.path.join(outputdir, str(i))
-        if not os.path.isdir(thisdir):
-            os.mkdir(thisdir)
+    if not args.csv:
+        # Perform the whole riun
 
-        # Create the subprocess
-        subprocess = multiprocessing.Process(target=worker, args=(thisdir, inifile))
-        jobs.append(subprocess)
-        subprocess.start()
+        # Copy the inifile to the output directory
+        copyfile(args.inifile, os.path.join(outputdir, inifilename))
 
-    # Wait for all processes to complete
-    for subprocess in jobs:
-        subprocess.join()
+        # Run all the processes
+        jobs = []
+        for i in range(1, num_threads + 1):
+            # Make the output directory for this subprocess
+            thisdir = os.path.join(outputdir, str(i))
+            if not os.path.isdir(thisdir):
+                os.mkdir(thisdir)
+
+            # Create the subprocess
+            subprocess = multiprocessing.Process(target=worker, args=(thisdir, inifile))
+            jobs.append(subprocess)
+            subprocess.start()
+
+        # Wait for all processes to complete
+        for subprocess in jobs:
+            subprocess.join()
 
     # Create the CSV file for this run
     createcsv(inifile, num_threads, outputdir, inifiledir + ".csv")
