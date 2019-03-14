@@ -31,6 +31,7 @@ python run_aws.py inifiles/[init.json]
 """
 # Used for setting up the subprocesses
 import os
+import time
 from shutil import copyfile
 import argparse
 import json
@@ -197,6 +198,8 @@ def createcsv(inifile, num_threads, outputdir, csvname):
             f.write(template.format(**entry))
 
 if __name__ == "__main__":
+    start = time.time()
+
     # Deal with command line arguments
     parser = argparse.ArgumentParser(description="Set up a multi-process sweep")
     parser.add_argument("inifile", help=".json file to read initialization from")
@@ -240,3 +243,8 @@ if __name__ == "__main__":
 
     # Create the CSV file for this run
     createcsv(inifile, num_threads, outputdir, inifiledir + ".csv")
+
+    # Report on time taken
+    end = time.time()
+    with open(os.path.join(outputdir, "time.txt"), "w") as f:
+        f.write("Finished in {} s".format(round(end - start, 4)))

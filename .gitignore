@@ -1,3 +1,4 @@
+.env
 data
 inifiles
 *__pycache__
