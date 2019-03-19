@@ -5,6 +5,7 @@ model.py
 Defines the model for evolution, built on top of AbstractModel
 """
 import pickle
+import time as systime
 from math import pi, sqrt, log
 from evolver.eoms import eoms, compute_all, compute_2ptpsi, N_efolds
 from evolver.integrator import AbstractModel
@@ -93,7 +94,8 @@ Initial Psi RMS: {sqrt(psi2pt)}
             "deltarho2": deltarho2,
             "phi2pt": phi2pt,
             "psirms": sqrt(psi2pt),
-            "kappa": params.kappa
+            "kappa": params.kappa,
+            "runtime": systime.time()
         }
 
     def cleanup(self, time, data):
@@ -109,10 +111,15 @@ Initial Psi RMS: {sqrt(psi2pt)}
                 self.quickdata["inflationended"] = True
                 a = data[0]
                 self.quickdata["efolds"] = N_efolds(a)
+        self.quickdata["runtime"] = systime.time() - self.quickdata["runtime"]
 
         # Write the quickdata
         with open(self.basefilename + ".quick", 'wb') as f:
             pickle.dump(self.quickdata, f)
+
+        # Append runtime to the info file
+        with open(self.basefilename + ".info", "a") as f:
+            f.write(f"Runtime (seconds): {self.quickdata['runtime']}\n")
 
     def derivatives(self, time, data):
         """Computes derivatives for evolution"""
