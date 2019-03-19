@@ -24,6 +24,8 @@ def create_package(phi0,
                    kappafactor=20,
                    l1modeson=True,
                    perturbBD=True,
+                   perturbranges={"delta": [-1, 1], "gamma": [0.1, 1]},
+                   perturblogarithmic=False,
                    perform_run=True,
                    seed=None,
                    fulloutput=True,
@@ -51,6 +53,8 @@ def create_package(phi0,
         * kappafactor: Sets the scale of the regulator in terms of Hubble
         * l1modeson: If set to False, initializes all l=1 modes with zero coefficients
         * perturbBD: Do we perturb about Bunch-Davies?
+        * perturbranges: What ranges for delta and gamma should we use?
+        * perturblogarithmic: Do we perturb using a log prior?
         * perform_run: Do we evolve, pr just set everything up?
         * seed: Random seed (use None to pick a random Random seed)
         * fulloutput: Do you want full output from a run, or only initial/final conditions?
@@ -67,6 +71,8 @@ def create_package(phi0,
         'kappafactor': kappafactor,
         'l1modeson': l1modeson,
         'perturbBD': perturbBD,
+        'perturbranges': perturbranges,
+        'perturblogarithmic': perturblogarithmic,
         'perform_run': perform_run,
         'seed': seed,
         'fulloutput': fulloutput,
@@ -171,14 +177,15 @@ def _create_parameters(package):
     if parameters['perturbBD']:
         # perturb away from Bunch-Davies initial conditions slightly
         # create range for draws of parameters to initialized modes
-        delta_min = -1
-        delta_max = 1
-        gamma_min = 0.1
-        gamma_max = 1
+        delta_min, delta_max = parameters['perturbranges']['delta']
+        gamma_min, gamma_max = parameters['perturbranges']['gamma']
 
         # random coefficients for l = 0 modes
-        delta0 = np.round(np.random.uniform(delta_min, delta_max, len(k_grids[0])), 5)
-        gamma0 = np.round(np.random.uniform(gamma_min, gamma_max, len(k_grids[0])), 5)
+        delta0 = np.random.uniform(delta_min, delta_max, len(k_grids[0]))
+        if parameters['perturblogarithmic']:
+            gamma0 = np.exp(np.random.uniform(np.log(gamma_min), np.log(gamma_max), len(k_grids[0])))
+        else:
+            gamma0 = np.random.uniform(gamma_min, gamma_max, len(k_grids[0]))
         alpha0 = 1/gamma0
 
         # attach coefficients
@@ -188,9 +195,13 @@ def _create_parameters(package):
         if parameters['l1modeson']:
             for i in range(3):
                 # random coefficients for l = 1 modes
-                delta1 = np.round(np.random.uniform(delta_min, delta_max, len(k_grids[1])), 5)
-                gamma1 = np.round(np.random.uniform(gamma_min, gamma_max, len(k_grids[1])), 5)
+                delta1 = np.random.uniform(delta_min, delta_max, len(k_grids[1]))
+                if parameters['perturblogarithmic']:
+                    gamma1 = np.exp(np.random.uniform(np.log(gamma_min), np.log(gamma_max), len(k_grids[1])))
+                else:
+                    gamma1 = np.random.uniform(gamma_min, gamma_max, len(k_grids[1]))
                 alpha1 = 1/gamma1
+
                 poscoeffs[1][i] = alpha1 / np.sqrt(2*k_grids[1])
                 velcoeffs[1][i] = np.sqrt(k_grids[1] / 2) * (1j*gamma1 - delta1 - (H0*alpha1 / k_grids[1]))
         else:
