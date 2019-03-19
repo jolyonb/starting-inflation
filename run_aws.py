@@ -18,6 +18,11 @@ The initialization file should be a json file with the following structure:
         "max": [maxvalue],
         "steps": [stepvalue]
     },
+    "perturbranges": {
+        "delta": [minvalue, maxvalue],
+        "gamma": [minvalue, maxvalue]
+    },
+    "perturblogarithmic": [true/false],
     "outputdir": [outputdirectory],
     "type": ["off"/"bd"/"hartree"],
     "hartree_runs": [num],
@@ -69,6 +74,9 @@ def worker(directory, inifile):
     phi0dotstart = inifile["phi0dot"]["min"]
     phi0dotstop = inifile["phi0dot"]["max"]
     phi0dotsteps = inifile["phi0dot"]["steps"]
+    # Set up defaults for perturbed ranges and logarithmic option
+    perturbranges = inifile.get("perturbranges", {"delta": [-1, 1], "gamma": [0.1, 1]})
+    perturblogarithmic = inifile.get("perturblogarithmic", False)
 
     # Construct our steps
     phi0s = np.linspace(phi0start, phi0stop, phi0steps)
@@ -82,6 +90,8 @@ def worker(directory, inifile):
                              basefilename=None,
                              perturbBD=False,  #
                              hartree=False,    # Hartree off settings by default
+                             perturbranges=perturbranges,
+                             perturblogarithmic=perturblogarithmic,
                              timestepinfo=[200, 10],
                              num_k_modes=num_modes,
                              fulloutput=False)
