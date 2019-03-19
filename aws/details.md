@@ -74,7 +74,7 @@ https://devopscube.com/mount-ebs-volume-ec2-instance/
 
 In "Instances", go to "Elastic Block Store", "Volumes".
 Click on Create Volume
-Choose the appropriate parameters. Make sure that it's in the same zone as the instance though!
+Choose the appropriate parameters. Make sure that it's in the same zone as the instance though! (Note: If you select the format to be a 100 Gb empty file system, that overrides the size option that you selected above! Also note that you pay for the size of the drive you create, not how much data you store on it.)
 Righ click on your volume, and attach it to your instance.
 
 In ssh, see available disks using
@@ -83,6 +83,8 @@ lsblk
 Check that your device has a file system by running
 sudo file -s /dev/xvdf
 (Replace xvdf with the appropriate device name)
+If it says "data", you don't have a file system set up. To format:
+sudo mkfs -t xfs /dev/xvdf
 
 Make a directory to mount the device in
 sudo mkdir /ebs

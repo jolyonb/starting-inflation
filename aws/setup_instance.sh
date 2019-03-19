@@ -8,4 +8,4 @@ dns=$(./getdns.sh)
 scp -i ~/.ssh/aws.pem mount_script.sh ec2-user@$dns:~/
 
 # Run the mount script remotely
-ssh -T -i ~/.ssh/aws.pem ec2-user@$dns "chmod +x mount_script.sh && ./mount_script.sh"
+ssh -o StrictHostKeyChecking=no -T -i ~/.ssh/aws.pem ec2-user@$dns "chmod +x mount_script.sh && ./mount_script.sh"

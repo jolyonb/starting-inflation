@@ -6,4 +6,4 @@
 dns=$(./getdns.sh)
 
 # Run the SSH command
-ssh -i ~/.ssh/aws.pem ec2-user@$dns $*
+ssh -o StrictHostKeyChecking=no -i ~/.ssh/aws.pem ec2-user@$dns $*

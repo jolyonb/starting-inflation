@@ -33,6 +33,6 @@ scp -i ~/.ssh/aws.pem $1 ec2-user@$dns:/ebs/init/ > /dev/null
 # Run the script using nohup to run it after SSH closes
 filename=$(basename $1)
 echo "Running SSH..."
-ssh -i ~/.ssh/aws.pem ec2-user@$dns "sh -c 'source /ebs/starting-inflation/.env/bin/activate; cd /ebs; nohup ./starting-inflation/run_aws.py ./init/$filename > /dev/null 2>&1 &'"
+ssh -o StrictHostKeyChecking=no -i ~/.ssh/aws.pem ec2-user@$dns "sh -c 'source /ebs/starting-inflation/.env/bin/activate; cd /ebs; nohup ./starting-inflation/run_aws.py ./init/$filename > /dev/null 2>&1 &'"
 
 echo "Done!"
