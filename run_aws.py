@@ -187,7 +187,7 @@ def createcsv(inifile, num_threads, outputdir, csvname):
 
             # Add in any extra details about this run
             plot_data["filename"] = fn
-            plot_data['infl'] = 1 if quickdata["inflationended"] else 0
+            plot_data['infl'] = 1 if quickdata.get("inflationended", False) else 0
             # Type:
             # 0 = Hartree Off
             # 1 = Bunch-Davies
