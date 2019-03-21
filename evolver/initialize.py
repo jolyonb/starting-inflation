@@ -269,9 +269,9 @@ def _create_parameters(package):
     Hdot = compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad)
 
     # Make sure that we don't have a denominator blowup in computing the initial psi values
-    carefulfactor = 0.5  # The maximum dimensionless boost that a psi mode can get from the denominator
+    carefulfactor = 10  # The maximum dimensionless boost that a psi mode can get from the denominator
     badk2 = Hdot + 2/3*phi2ptgrad
-    if badk2 < 0 and np.any(np.abs(all_wavenumbers + badk2) < H0**2 / carefulfactor):
+    if badk2 < 0 and np.any(np.abs(all_wavenumbers**2 + badk2) < H0**2 / carefulfactor):
         # We have a mode that is getting an artificial boost
         # Report an issue so we can try again
         raise BadK()
