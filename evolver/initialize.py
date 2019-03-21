@@ -268,14 +268,15 @@ def _create_parameters(package):
     # Compute Hdot
     Hdot = compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad)
 
-    # Make sure that we don't have any k^2 values that are within a factor of 2 of
-    # |Hdot + 2/3*phi2ptgrad|
-    dangerval = sqrt(abs(Hdot + 2/3*phi2ptgrad))
-    for val in all_wavenumbers:
-        if val > dangerval * 0.98 and val < dangerval * 1.02:
-            # We have a mode that is getting an artificial boost
-            # Report an issue so we can try again
-            raise BadK()
+    # Make sure that we don't have a denominator blowup in computing the initial psi values
+    carefulfactor = 100
+    badk2 = Hdot + 2/3*phi2ptgrad
+    if badk2 < 0:
+        for kval in all_wavenumbers:
+            if kval**2 + badk2 < H0**2 / carefulfactor:
+                # We have a mode that is getting an artificial boost
+                # Report an issue so we can try again
+                raise BadK()
 
     # Now compute the initial values for the psi fields
     psiA, psiB = compute_initial_psi(a, adot, phi0, phi0dot,
