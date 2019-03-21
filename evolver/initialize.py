@@ -269,14 +269,12 @@ def _create_parameters(package):
     Hdot = compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad)
 
     # Make sure that we don't have a denominator blowup in computing the initial psi values
-    carefulfactor = 100
+    carefulfactor = 0.5  # The maximum dimensionless boost that a psi mode can get from the denominator
     badk2 = Hdot + 2/3*phi2ptgrad
-    if badk2 < 0:
-        for kval in all_wavenumbers:
-            if kval**2 + badk2 < H0**2 / carefulfactor:
-                # We have a mode that is getting an artificial boost
-                # Report an issue so we can try again
-                raise BadK()
+    if badk2 < 0 and np.any(np.abs(all_wavenumbers + badk2) < H0**2 / carefulfactor):
+        # We have a mode that is getting an artificial boost
+        # Report an issue so we can try again
+        raise BadK()
 
     # Now compute the initial values for the psi fields
     psiA, psiB = compute_initial_psi(a, adot, phi0, phi0dot,
