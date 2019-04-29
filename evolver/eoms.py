@@ -360,7 +360,7 @@ def compute_2ptgrad(fullphi1, params):
         * params: EOMParameters object
 
     Returns <(\grad \delta \hat{\phi})^2>
-    == 1/(6 \pi R^3) \sum_k \sum_m k^2 / |j_2(kR)|^2 * |\phi|^2 e^{-k^2/(2 \kappa^2)}
+    == 1/(6 \pi R^3) \sum_k \sum_m k^2 / |j_2(kR)|^2 * |\phi|^2 * e^{-k^2/(2 \kappa^2)}
 
     Note - no 1/a^2 included here
     """

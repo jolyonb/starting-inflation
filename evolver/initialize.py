@@ -29,6 +29,7 @@ def create_package(phi0,
                    perform_run=True,
                    seed=None,
                    fulloutput=True,
+                   rescale=True,
                    **kwargs):
     """
     Packages all the settings that need to be set for a run into a dictionary.
@@ -57,6 +58,7 @@ def create_package(phi0,
         * perturblogarithmic: Do we perturb using a log prior?
         * perform_run: Do we evolve, pr just set everything up?
         * seed: Random seed (use None to pick a random Random seed)
+        * rescale: Do we attempt to rescale Rmax to avoid the psi pole?
         * fulloutput: Do you want full output from a run, or only initial/final conditions?
     """
     package = {
@@ -75,6 +77,7 @@ def create_package(phi0,
         'perturblogarithmic': perturblogarithmic,
         'perform_run': perform_run,
         'seed': seed,
+        'rescale': rescale,
         'fulloutput': fulloutput,
         **kwargs
     }
@@ -190,7 +193,7 @@ def _create_parameters(package):
 
         # attach coefficients
         poscoeffs[0] = alpha0 / np.sqrt(2*k_grids[0])
-        velcoeffs[0] = np.sqrt(k_grids[0] / 2) * (1j*gamma0 - delta0 - (H0*alpha0 / k_grids[0]))
+        velcoeffs[0] = np.sqrt(k_grids[0] / 2) * (-1j*gamma0 + delta0 - (H0*alpha0 / k_grids[0]))
 
         if parameters['l1modeson']:
             for i in range(3):
@@ -203,7 +206,7 @@ def _create_parameters(package):
                 alpha1 = 1/gamma1
 
                 poscoeffs[1][i] = alpha1 / np.sqrt(2*k_grids[1])
-                velcoeffs[1][i] = np.sqrt(k_grids[1] / 2) * (1j*gamma1 - delta1 - (H0*alpha1 / k_grids[1]))
+                velcoeffs[1][i] = np.sqrt(k_grids[1] / 2) * (-1j*gamma1 + delta1 - (H0*alpha1 / k_grids[1]))
         else:
             for i in range(3):
                 poscoeffs[1][i] = np.zeros_like(k_grids[1])
@@ -271,10 +274,11 @@ def _create_parameters(package):
     # Make sure that we don't have a denominator blowup in computing the initial psi values
     carefulfactor = 10  # The maximum dimensionless boost that a psi mode can get from the denominator
     badk2 = Hdot + 2/3*phi2ptgrad
-    if badk2 < 0 and np.any(np.abs(all_wavenumbers**2 + badk2) < H0**2 / carefulfactor):
-        # We have a mode that is getting an artificial boost
-        # Report an issue so we can try again
-        raise BadK()
+    if parameters['rescale']:
+        if badk2 < 0 and np.any(np.abs(all_wavenumbers**2 + badk2) < H0**2 / carefulfactor):
+            # We have a mode that is getting an artificial boost
+            # Report an issue so we can try again
+            raise BadK()
 
     # Now compute the initial values for the psi fields
     psiA, psiB = compute_initial_psi(a, adot, phi0, phi0dot,

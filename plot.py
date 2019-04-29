@@ -99,15 +99,15 @@ def create_cover_sheet(canvas):
     ax.text(0.05, 0.95, r'$K$ = 0.0')
     ax.text(0.05, 0.90, (r'$\frac{\delta\rho^{(2)}(0)}{\rho(0)}$ = '
                          + str(round(deltarho2[0]/rho[0], 3))))
-    ax.text(0.05, 0.85, r'$R_{\rm max}$ = ' + str(round(params.Rmax, 1)))
+    ax.text(0.05, 0.85, r'$R_{\rm max}$ = ' + f'{params.Rmax:e}')
     ax.text(0.05, 0.80, r'$\lambda$ = ' + str(params.model.lamda))
-    ax.text(0.05, 0.75, r'$\frac{\kappa}{H(0)}$ = ' + str(round(params.kappa/H[0], 1)))
+    ax.text(0.05, 0.75, r'$\frac{\kappa}{H(0)}$ = ' + f'{params.kappa/H[0]:e}')
     ax.text(0.05, 0.70, r'$\phi_0$ = ' + str(phi0[0]))
     ax.text(0.05, 0.65, r'$\dot{\phi}_0$ = ' + str(phi0dot[0]))
     ax.text(0.05, 0.60, r'$a(0)$ = ' + str(a[0]))
-    ax.text(0.05, 0.55, r'$H(0)$ = ' + str(round(H[0], 6)))
+    ax.text(0.05, 0.55, r'$H(0)$ = ' + f'{H[0]:e}')
     ax.text(0.05, 0.50, r'$\frac{\kappa^2}{4\pi^2}$ = ' + str(round((params.kappa**2/4/pi**2), 6)))
-    ax.text(0.05, 0.45, r'$\langle \delta\phi^2 \rangle$ = ' + str(round(phi2pt[0], 6)))
+    ax.text(0.05, 0.45, r'$\langle \delta\phi^2 \rangle$ = ' + f'{phi2pt[0]:e}')
     ax.text(0.05, 0.40, (r'$\frac{\langle \delta\phi^2 \rangle}{(\kappa^2/4\pi^2)}$ = '
                          + str(round(phi2pt[0] / (params.kappa**2/4/pi**2), 6))))
     ax.text(0.05, 0.35, r'$\sqrt{\langle \psi^2 \rangle}$ = ' + str(round(np.sqrt(psi2pt[0]), 6)))
@@ -119,6 +119,8 @@ def create_cover_sheet(canvas):
     else:
         ax.text(0.05, 0.15, 'Hartree OFF')
     ax.text(0.05, 0.10, 'Filename: ' + model.basefilename)
+    ax.text(0.05, 0.05, r'$\langle \delta\dot{\phi}^2 \rangle$ = ' + f'{phi2ptdt[0]:e}')
+    ax.text(0.05, 0.0, r'$\langle (\nabla \delta\phi)^2 \rangle$ = ' + f'{phi2ptgrad[0]:e}')
 
     # Hide the ticks (this is an empty plot!)
     ax.tick_params(
