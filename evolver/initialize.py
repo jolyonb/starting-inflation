@@ -6,7 +6,6 @@ Initializes parameters for a run
 """
 import random
 import numpy as np
-from math import sqrt
 from scipy.special import spherical_jn
 from evolver.besselroots import get_jn_roots
 from evolver.utilities import pack
@@ -18,10 +17,10 @@ def create_package(phi0,
                    infmodel,
                    end_time,
                    basefilename,
-                   num_k_modes=40,
+                   k_max_factor=4,  # Suppression of exp(-4^2/2) ~ 3*10^-4 for largest scale
                    hartree=True,
-                   Rmaxfactor=2,
-                   kappafactor=20,
+                   Rmaxfactor=1.5*np.pi,
+                   kappafactor=5,
                    l1modeson=True,
                    perturbBD=True,
                    perturbranges={"delta": [-1, 1], "gamma": [0.1, 1]},
@@ -48,7 +47,7 @@ def create_package(phi0,
         * end_time: Maximum time to evolve to
         * basefilename: The base name of the desired output file
                         (different extensions will be added)
-        * num_k_modes: This is the number of k modes we will use for ell = 0
+        * k_max_factor: Number times kappa that estimates the largest k to consider
         * hartree: Whether or not to compute Hartree corrections
         * Rmaxfactor: The factor by which to increase Rmax from the initial Hubble radius
         * kappafactor: Sets the scale of the regulator in terms of Hubble
@@ -67,7 +66,7 @@ def create_package(phi0,
         'infmodel': infmodel,
         'end_time': end_time,
         'basefilename': basefilename,
-        'num_k_modes': num_k_modes,
+        'k_max_factor': k_max_factor,
         'hartree': hartree,
         'Rmaxfactor': Rmaxfactor,
         'kappafactor': kappafactor,
@@ -133,7 +132,11 @@ def _create_parameters(package):
     ####################
     # Wavenumber grids #
     ####################
-    num_k_modes = parameters['num_k_modes']
+    k_max_factor = parameters['k_max_factor']
+    num_k_modes = int(np.ceil(Rmax * kappa * k_max_factor / np.pi))
+    if not parameters['hartree'] or num_k_modes < 2:
+        num_k_modes = 2
+    parameters['num_k_modes'] = num_k_modes
     k_grids = get_jn_roots(1, num_k_modes)
 
     # Iterate through all wavenumbers, dividing by Rmax

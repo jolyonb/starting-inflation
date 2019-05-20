@@ -14,5 +14,5 @@
     "outputdir": "data",
     "type": "hartree",
     "hartree_runs": 1,
-    "num_modes": 40
+    "k_max_factor": 4
 }

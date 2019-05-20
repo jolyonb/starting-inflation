@@ -8,6 +8,8 @@ Makes a plot of a run
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
+import pickle
+import math
 from evolver.utilities import unpack
 from evolver.model import Model
 from math import pi
@@ -45,6 +47,10 @@ with open(args.filename + ".dat2") as f:
 results2 = np.array([list(map(float, line.split(", "))) for line in data2]).transpose()
 (H, Hdot, addot, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad, psi2pt, rho,
     deltarho2, epsilon, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
+
+# File 3
+with open(args.filename + ".quick", 'rb') as f:
+    quickdata = pickle.load(f)
 
 # Construct background quantities
 adot = a * H
@@ -144,6 +150,9 @@ def make_pdf(pages, filename):
     create_cover_sheet(canvas)
     pdf_pages.savefig(canvas)
 
+    # Make the dangerplot
+    create_danger_plot(pdf_pages)
+
     # Create the plots
     for idx, page in enumerate(pages):
         # Create the canvas
@@ -201,6 +210,10 @@ def make_pdf(pages, filename):
             plt.xlabel(definition['x_label'])
             plt.ylabel(definition['y_label'])
 
+            # Call the extra plotting function if desired
+            if definition['extra_plotting']:
+                definition['extra_plotting']()
+
         # Save the page
         pdf_pages.savefig(canvas)
 
@@ -211,7 +224,8 @@ def make_pdf(pages, filename):
 def define_fig(x_data, y_data,
                x_label=r"$\ln(a)$", y_label=None,
                x_range=None, y_range=None,
-               y_type=PlotStyle.LINEAR):
+               y_type=PlotStyle.LINEAR,
+               extra_plotting=None):
     """Constructs data for a figure"""
     return {
         'x': x_data,
@@ -220,12 +234,75 @@ def define_fig(x_data, y_data,
         'y_label': y_label,
         'x_range': x_range,
         'y_range': y_range,
-        'y_type': y_type
+        'y_type': y_type,
+        'extra_plotting': extra_plotting
     }
 
 def early(data, range=(0, 6)):
     """Restricts the plotting range in x to the given range"""
     return {**data, 'x_range': range}
+
+def abscissae():
+    """
+    Plot four different epochs in terms of inflation starting/ending and mode crossing
+    They come in traffic light colors when arranged correctly!
+    """
+    plt.axvline(x=quickdata['inflationstart'], color='k')
+    plt.axvline(x=quickdata['slowrollstart'], color='g')
+    plt.axvline(x=quickdata['kappacrossing'], color='xkcd:tangerine')
+    plt.axvline(x=quickdata['lastcrossing'], color='r')
+
+def modes_in_horizon():
+    """Computes the number of ell = 0 modes inside the horizon as a function of redshift"""
+    # A wavenumber is inside the horizon when k > aH = adot
+    modesinside = np.zeros_like(lna)
+    for idx, val in enumerate(adot):
+        # Convert numpy Booleans to floats
+        modesinside[idx] = np.sum((params.k_grids[0] > adot[idx]) * 1.0)
+
+    return define_fig(x_data=lna,
+                      y_data=modesinside,
+                      y_label=r'$\ell=0$ Modes inside horizon',
+                      x_range=(0, 8),
+                      extra_plotting=abscissae)
+
+def create_danger_plot(pdf_pages):
+    """Construct a plot highlighting the position of all wavenumbers and scales"""
+
+    # Create the canvas
+    canvas = plt.figure(figsize=(14.0, 14.0), dpi=100)
+    plt.subplot(2, 1, 1)
+
+    plt.ticklabel_format(style='plain', axis='y')
+    plt.yticks((0, 1))
+
+    bot=-1
+    (markerline, stemlines, baseline) = plt.stem(params.k_grids[0], 0*np.ones_like(params.k_grids[0]), bottom=bot)
+    plt.setp(baseline, visible=False)
+    (markerline, stemlines, baseline) = plt.stem(params.k_grids[1], 1*np.ones_like(params.k_grids[1]), bottom=bot)
+    plt.setp(baseline, visible=False)
+
+    plt.xlim(0, 1.05*params.k_grids[0][-1])
+    plt.ylim(bot, 2)
+
+    # kappa
+    plt.axvline(x=quickdata['kappa'], color='g')
+
+    # adot = a*H (horizon scale)
+    plt.axvline(x=adot[0], color='xkcd:tangerine')
+
+    # psi pole location
+    dangerk = -(Hdot[0] + 2/3*phi2ptgrad[0])
+    if dangerk > 0:
+        plt.axvline(x=math.sqrt(dangerk), color='r')
+
+    # Apply labels
+    plt.xlabel("Wavenumber")
+    plt.ylabel(r"$\ell$ value")
+
+    # Save the page
+    pdf_pages.savefig(canvas)
+
 
 
 ####################
@@ -244,6 +321,12 @@ Hplot = define_fig(x_data=lna, y_data=H, y_label='H')
 Hdotplot = define_fig(x_data=lna, y_data=Hdot, y_label=r'$\dot{H}$')
 phi0plot = define_fig(x_data=lna, y_data=phi0, y_label=r'$\phi_0$')
 epsilonplot = define_fig(x_data=lna, y_data=epsilon, y_label=r'$\epsilon$')
+epsilonplot2 = define_fig(x_data=lna,
+                          y_data=epsilon,
+                          y_label=r'$\epsilon$',
+                          extra_plotting=abscissae,
+                          x_range=(0, 8),
+                          y_type=PlotStyle.LOG10)
 
 # Energies
 rhoplot = define_fig(x_data=lna,
@@ -363,6 +446,9 @@ Rplots = define_fig(x_data=lna,
                     y_type=PlotStyle.LOG10)
 
 
+# Number of modes in horizon
+modecount = modes_in_horizon()
+
 ###########################
 # PDF Layout and Creation #
 ###########################
@@ -382,7 +468,8 @@ pages = [
 #    [psi_violations_real, psi_violations_imag],
 #    [early(psi_violations_real), early(psi_violations_imag)],
     [psi_violations_A, psi_violations_B],
-    [early(Rplots), Rplots]
+    [early(Rplots), Rplots],
+    [modecount, epsilonplot2]
 ]
 
 # Construct the PDF

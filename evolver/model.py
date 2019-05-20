@@ -39,9 +39,12 @@ class Model(AbstractModel):
         self.fulloutput = self.parameters['fulloutput']
 
         # Set internal flags
+        self.inflationstart = None
         self.slowroll = False
         self.slowrollstart = None
         self.slowrollend = None
+        self.kappacrossing = None
+        self.lastcrossing = None
 
     def begin(self):
         """Open file handles for evolution and write initial description"""
@@ -95,7 +98,14 @@ Initial Psi RMS: {sqrt(psi2pt)}
             "phi2pt": phi2pt,
             "psirms": sqrt(psi2pt),
             "kappa": params.kappa,
-            "runtime": systime.time()
+            "runtime": systime.time(),
+            "slowroll": False,
+            "inflationended": False,
+            "efolds": None,
+            "inflationstart": None,
+            "slowrollstart": None,
+            "kappacrossing": None,
+            "lastcrossing": None
         }
 
     def cleanup(self, time, data):
@@ -105,13 +115,15 @@ Initial Psi RMS: {sqrt(psi2pt)}
             self.extrafile.close()
 
         # Finish up the quickdata
-        if self.slowroll:
-            self.quickdata["slowroll"] = True
-            if self.halt:
-                self.quickdata["inflationended"] = True
-                a = data[0]
-                self.quickdata["efolds"] = N_efolds(a)
         self.quickdata["runtime"] = systime.time() - self.quickdata["runtime"]
+        self.quickdata["slowroll"] = self.slowroll
+        if self.halt:
+            self.quickdata["inflationended"] = True
+            self.quickdata["efolds"] = N_efolds(data[0])
+        self.quickdata["inflationstart"] = self.inflationstart
+        self.quickdata["slowrollstart"] = self.slowrollstart
+        self.quickdata["kappacrossing"] = self.kappacrossing
+        self.quickdata["lastcrossing"] = self.lastcrossing
 
         # Write the quickdata
         with open(self.basefilename + ".quick", 'wb') as f:
@@ -133,6 +145,9 @@ Initial Psi RMS: {sqrt(psi2pt)}
                                                      self.eomparams,
                                                      time)
 
+        # Check for inflation
+        if epsilon < 1.0 and self.inflationstart is None:
+            self.inflationstart = log(a)
         # Check for slowroll
         if epsilon < 0.1:
             # Mark when we think slowroll has started
@@ -145,9 +160,14 @@ Initial Psi RMS: {sqrt(psi2pt)}
         elif self.slowroll and epsilon >= 1:
             self.halt = True
             self.haltmsg = "Inflation has ended"
-        elif epsilon > 0.1:
+        elif epsilon > 0.1 and not self.slowroll:
             # We're not slowrolling, so mark it so
             self.slowrollstart = None
+        # Check for mode crossings
+        if self.k_grids[0][-1] < adot and self.lastcrossing is None:
+            self.lastcrossing = log(a)
+        if self.eomparams.kappa < adot and self.kappacrossing is None:
+            self.kappacrossing = log(a)
 
         # Recombine the derivatives
         return pack(adot, phi0dot, phi0ddot,

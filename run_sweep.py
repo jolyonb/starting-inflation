@@ -15,8 +15,8 @@ from evolver.inflation import LambdaPhi4
 from evolver.model import Model
 
 # Initialize all settings
-lamda = 1e-12
-settings = {"off": True, "bunchdavies": False, "hartree": 0}
+lamda = 1e-10
+settings = {"off": False, "bunchdavies": False, "hartree": 1}
 filename = "data/plots"
 
 # Split the filename into a directory and a filename
@@ -27,16 +27,10 @@ os.chdir(directory)
 # Note that a step of 1 only does the start value
 phi0start = 20
 phi0stop = 30
-phi0steps = 15
+phi0steps = 3
 phi0dotstart = -0.1
 phi0dotstop = 0.1
-phi0dotsteps = 15
-
-# Fix the number of modes
-if settings["hartree"] > 0:
-    num_modes = 40
-else:
-    num_modes = 2
+phi0dotsteps = 3
 
 # Construct our steps
 phi0s = np.linspace(phi0start, phi0stop, phi0steps)
@@ -57,7 +51,6 @@ package = create_package(phi0=None,
                          basefilename=None,
                          perturbBD=False,
                          timestepinfo=[200, 10],
-                         num_k_modes=num_modes,
                          fulloutput=False)
 
 def perform_run(phi0, phi0dot, filename, hartree, bunchdavies):

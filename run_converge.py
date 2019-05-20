@@ -18,15 +18,10 @@ filename = "data/converge"
 lamda = 1e-9
 phi0 = 25
 phi0dot = 0.05
-num_modes = 40   # Number of modes for lowest R value
+k_max_factor = 3.5
 
 # Set the outer radius to run with
-# This choice keeps the highest k value constant
 radii = np.array([2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22])
-
-# Construct the number of modes for each radius
-modes = num_modes * (radii / radii[0])
-modes = modes.astype(int)
 
 # Split the filename into a directory and a filename
 directory, filename = os.path.split(filename)
@@ -43,6 +38,7 @@ package = create_package(phi0=phi0,
                          phi0dot=phi0dot,
                          infmodel=LambdaPhi4(lamda=lamda),
                          end_time=5000*sqrt(1e-6/lamda),
+                         k_max_factor=k_max_factor,
                          basefilename=None,
                          perturbBD=False,
                          timestepinfo=[200, 10],
@@ -51,7 +47,7 @@ package = create_package(phi0=phi0,
                          hartree=True)
 
 # Sweep through all the runs
-for Rval, numk in zip(radii, modes):
+for Rval in radii:
     print(f"Running R of {Rval}")
     run += 1
     fn = filename + f"-{run}"
@@ -59,7 +55,6 @@ for Rval, numk in zip(radii, modes):
     # Update the model details for this run
     package['basefilename'] = fn
     package['Rmaxfactor'] = Rval
-    package['num_k_modes'] = numk
 
     # Run the model
     parameters = create_parameters(package)

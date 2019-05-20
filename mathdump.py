@@ -6,7 +6,6 @@ Creates a data file for mathematica containing results from a sweep
 import pickle
 import os
 import argparse
-import numpy as np
 
 ####################################
 # Deal with command line arguments #
@@ -53,8 +52,11 @@ for file, phi0, phi0dot in data:
       "psirms": 0.0,
       "efolds": 0.0,
       "kappa": 0.0,
-      "infl": 0,
-      "runtime": -1
+      "runtime": -1,
+      "inflationstart": 0.0,
+      "slowrollstart": 0.0,
+      "kappacrossing": 0.0,
+      "lastcrossing": 0.0
     }
 
     for key in quickdata:
@@ -73,14 +75,14 @@ for file, phi0, phi0dot in data:
         plot_data["type"] = 1
     else:
         plot_data["type"] = 2
-    plot_data['infl'] = 1 if plot_data['infl'] else 0
 
     fulldata.append(plot_data)
 
 # All data from the sweep is now stored in fulldata
 # Output it to a file!
 os.chdir(olddir)
-template = "{phi0},{phi0dot},{H},{rho},{deltarho2},{phi2pt},{psirms},{efolds},{kappa},{infl},{type},{filename},{runtime},{ratio}\n"
+template = "{phi0},{phi0dot},{H},{rho},{deltarho2},{phi2pt},{psirms},{efolds},{kappa},{type},{filename},{runtime},{ratio},{inflationstart},{slowrollstart},{kappacrossing},{lastcrossing}\n"
+
 with open(filename + "-math.csv", "w") as f:
     for entry in fulldata:
         entry["ratio"] = entry["deltarho2"] / entry["rho"]

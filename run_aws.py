@@ -26,7 +26,7 @@ The initialization file should be a json file with the following structure:
     "outputdir": [outputdirectory],
     "type": ["off"/"bd"/"hartree"],
     "hartree_runs": [num],
-    "num_modes": [num]
+    "k_max_factor": [num]
 }
 
 Note that data is written to [outputdir]/[inifilename]/[threadnum]/
@@ -57,10 +57,9 @@ def worker(directory, inifile):
 
     # Read quantities from the inifile json
     setting = inifile["type"]
-    num_modes = inifile["num_modes"]
+    k_max_factor = inifile["k_max_factor"]
     hartree_runs = inifile.get("hartree_runs", 1)
     if setting == "off":
-        num_modes = 2
         hartree_runs = 1
     elif setting == "bd":
         hartree_runs = 1
@@ -93,7 +92,7 @@ def worker(directory, inifile):
                              perturbranges=perturbranges,
                              perturblogarithmic=perturblogarithmic,
                              timestepinfo=[200, 10],
-                             num_k_modes=num_modes,
+                             k_max_factor=k_max_factor,
                              fulloutput=False)
     # Apply settings
     if setting == "bd":
@@ -177,8 +176,11 @@ def createcsv(inifile, num_threads, outputdir, csvname):
               "psirms": 0.0,
               "efolds": 0.0,
               "kappa": 0.0,
-              "infl": 0,
-              "runtime": -1
+              "runtime": -1,
+              "inflationstart": 0.0,
+              "slowrollstart": 0.0,
+              "kappacrossing": 0.0,
+              "lastcrossing": 0.0
             }
 
             for key in quickdata:
@@ -187,7 +189,6 @@ def createcsv(inifile, num_threads, outputdir, csvname):
 
             # Add in any extra details about this run
             plot_data["filename"] = fn
-            plot_data['infl'] = 1 if quickdata.get("inflationended", False) else 0
             # Type:
             # 0 = Hartree Off
             # 1 = Bunch-Davies
@@ -203,7 +204,7 @@ def createcsv(inifile, num_threads, outputdir, csvname):
 
     # All data from the sweep is now stored in fulldata
     # Output it to a file!
-    template = "{phi0},{phi0dot},{H},{rho},{deltarho2},{phi2pt},{psirms},{efolds},{kappa},{infl},{type},{filename},{runtime},{ratio}\n"
+    template = "{phi0},{phi0dot},{H},{rho},{deltarho2},{phi2pt},{psirms},{efolds},{kappa},{type},{filename},{runtime},{ratio},{inflationstart},{slowrollstart},{kappacrossing},{lastcrossing}\n"
     with open(os.path.join(outputdir, csvname), "w") as f:
         for entry in fulldata:
             entry["ratio"] = entry["deltarho2"] / entry["rho"]
