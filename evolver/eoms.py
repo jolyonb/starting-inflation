@@ -60,6 +60,7 @@ def compute_all(unpacked_data, params):
     rho = compute_rho(phi0, phi0dot, params.model)
     phi2pt, phi2ptdt, phi2ptgrad = compute_hartree(phiA, phidotA, phiB, phidotB, params)
     deltarho2 = compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, params.model)
+    # TO-DO: Add rhoK expression (energy density in curvature)
 
     # Compute quantities that depend on Hartree on or off
     if params.hartree:
@@ -134,6 +135,7 @@ def compute_hubble(rho, deltarho2):
     Returns H == \dot{a}/a
     """
     return sqrt((rho + deltarho2)/3)
+    # TO-DO: modify to include the curvature energy density contribution
 
 def compute_rho(phi0, phi0dot, model):
     """
@@ -160,6 +162,10 @@ def compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, model):
     """
     return (phi2ptdt + phi2ptgrad/(a*a) + phi2pt*model.ddpotential(phi0) + (phi2pt*phi2pt*model.ddddpotential(phi0)/4))/2
 
+# TO-DO: write function to calculate the curvature energy density
+def compute_rhoK():
+    return 0
+
 def compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad):
     """
     Computes the derivative of the Hubble factor.
@@ -171,6 +177,7 @@ def compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad):
     Returns H == -1/(2 M_{pl}^2) [\dot{\phi}_0^2 + 2-pt \dot{\phi} + 2-pt \grad(\phi)/3a^2]
     """
     return - 0.5 * (phi0dot * phi0dot + phi2ptdt + phi2ptgrad/(3*a*a))
+    # TO-DO: Confirm that this equation goes unchanged with the addition of curvature
 
 def compute_phi0ddot(phi0, phi0dot, H, phi2pt, model):
     """
@@ -217,6 +224,7 @@ def compute_perturb_phiddot(phi0, phi0dot, a, H, phi, phidot, psi, psidot, phi2p
             - (k2/(a*a) + model.ddpotential(phi0) + 0.5*model.ddddpotential(phi0)*phi2pt)*phi
             - 2 * (model.dpotential(phi0) + 0.5*model.dddpotential(phi0)*phi2pt)*psi
             + 4*phi0dot*psidot)
+    # TO-DO: Confirm that this equation goes unchanged with the addition of curvature
 
 def compute_initial_psi(a, adot, phi0, phi0dot,
                         phiA, phidotA, phiB, phidotB,
@@ -242,6 +250,7 @@ def compute_initial_psi(a, adot, phi0, phi0dot,
     phi0ddot = compute_phi0ddot(phi0, phi0dot, H, phi2pt, params.model)
 
     # Compute psi
+    # TO-DO: This piece requires the addition of -3K/a^2 as seen in Eq. 60 of Dave's 'HartreeEOMsv4'
     factor = Hdot + 2/(3*a*a) * phi2ptgrad + params.all_wavenumbers2/(a*a)
     psiA = 0.5*(phi0ddot*phiA - phi0dot*phidotA)/factor
     psiB = 0.5*(phi0ddot*phiB - phi0dot*phidotB)/factor
