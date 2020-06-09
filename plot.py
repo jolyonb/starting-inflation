@@ -347,9 +347,6 @@ rhokplot = define_fig(x_data=lna,
                      y_label=r'$\rho_{k}$',
                      y_type=PlotStyle.LOG10)
 
-# lnrho = np.log(rho)
-# lndeltarho2 = np.log(deltarho2)
-# lnrhok = np.log(rhok)
 totalenergy = define_fig(x_data=lna,
                          y_data=[rho, deltarho2, rhok],
                          y_label='rho',
