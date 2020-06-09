@@ -347,10 +347,13 @@ rhokplot = define_fig(x_data=lna,
                      y_label=r'$\rho_{k}$',
                      y_type=PlotStyle.LOG10)
 
-lnrho = np.log(rho)
-lndeltarho2 = np.log(deltarho2)
-lnrhok = np.log(rhok)
-totalenergy = define_fig(x_data=lna, y_data=[lnrho, lndeltarho2, lnrhok], y_label='rho')
+# lnrho = np.log(rho)
+# lndeltarho2 = np.log(deltarho2)
+# lnrhok = np.log(rhok)
+totalenergy = define_fig(x_data=lna,
+                         y_data=[rho, deltarho2, rhok],
+                         y_label='rho',
+                         y_type=PlotStyle.LOG10)
 
 deltaphidot2plot = define_fig(x_data=lna,
                               y_data=phi2ptdt/2,
@@ -469,7 +472,7 @@ pages = [
     [Hplot, Hdotplot, phi0plot, epsilonplot],
     [early(rhoplot), early(deltarho2plot), early(energyratio), early(rhokplot)],
     [rhoplot, deltarho2plot, energyratio, rhokplot],
-    [early(totalenergy),totalenergy],
+    [early(totalenergy), totalenergy],
     [phidot2plot, deltaphidot2plot, kineticratio],
     [early(rmsdeltaphi), early(rmsphionphi), rmsdeltaphi, rmsphionphi],
     [early(deltaphiplots), deltaphiplots],
