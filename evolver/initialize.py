@@ -126,10 +126,8 @@ def _create_parameters(package):
     infmodel = parameters['infmodel']
     q = parameters['q']
     rho = compute_rho(phi0, phi0dot, infmodel)
-    # TO-DO: uncertain whether the above function should taken in a or a=1 at this stage
+    # TO-DO: confirm this quantity below should take in a = 1 here
     rhok = compute_rhoK(1, q, phi0, phi0dot, infmodel)
-    # rhok = compute_rhoK(a, rho)
-
     # Estimate Hubble
     H0 = compute_hubble(rho, 0, rhok)
 
