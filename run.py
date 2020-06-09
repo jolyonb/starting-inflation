@@ -18,6 +18,7 @@ lamda = 1e-10
 filename = "data/output"
 package = create_package(phi0=25,
                          phi0dot=-0.01,
+                         q = 0.03,
                          infmodel=LambdaPhi4(lamda=lamda),
                          end_time=5000 * sqrt(1e-6/lamda),
                          basefilename=filename,

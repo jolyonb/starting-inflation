@@ -10,10 +10,11 @@ from scipy.special import spherical_jn
 from evolver.besselroots import get_jn_roots
 from evolver.utilities import pack
 from evolver.eoms import (compute_hubble, compute_initial_psi, compute_hartree,
-                          compute_rho, compute_deltarho2, EOMParameters, compute_hubbledot)
+                          compute_rho, compute_deltarho2, EOMParameters, compute_hubbledot, compute_rhoK)
 
 def create_package(phi0,
                    phi0dot,
+                   q,
                    infmodel,
                    end_time,
                    basefilename,
@@ -43,6 +44,7 @@ def create_package(phi0,
     Arguments:
         * phi0: Starting value for the background field
         * phi0dot: Starting value for the time derivative of the background field
+        * q: Initial ratio of curvature energy density to background energy density
         * infmodel: Instance of an InflationModel class
         * end_time: Maximum time to evolve to
         * basefilename: The base name of the desired output file
@@ -63,6 +65,7 @@ def create_package(phi0,
     package = {
         'phi0': phi0,
         'phi0dot': phi0dot,
+        'q': q,
         'infmodel': infmodel,
         'end_time': end_time,
         'basefilename': basefilename,
@@ -121,9 +124,14 @@ def _create_parameters(package):
     phi0 = parameters['phi0']
     phi0dot = parameters['phi0dot']
     infmodel = parameters['infmodel']
+    q = parameters['q']
     rho = compute_rho(phi0, phi0dot, infmodel)
+    # TO-DO: uncertain whether the above function should taken in a or a=1 at this stage
+    rhok = compute_rhoK(1, q, phi0, phi0dot, infmodel)
+    # rhok = compute_rhoK(a, rho)
+
     # Estimate Hubble
-    H0 = compute_hubble(rho, 0)
+    H0 = compute_hubble(rho, 0, rhok)
 
     # Construct Rmax and kappa
     parameters['Rmax'] = Rmax = parameters['Rmaxfactor'] / H0
@@ -143,6 +151,13 @@ def _create_parameters(package):
     # to turn the roots into wavenumbers
     for ell in range(2):
         k_grids[ell] /= Rmax
+
+    # Eq. 40 of 'Notes on Spatial Eigenfunctionsmfor Curved Background FLRW Spacetimes, v2'
+    # p_grids[0] =
+    # p_grids[1] =
+
+
+
     parameters['k_grids'] = k_grids
 
     # Make a tuple storing the number of wavenumbers for each ell
@@ -231,6 +246,7 @@ def _create_parameters(package):
     # Construct EOMParameters #
     ###########################
     parameters['eomparams'] = EOMParameters(Rmax,
+                                            q,
                                             kappa,
                                             num_k_modes,
                                             parameters['total_wavenumbers'],
@@ -269,7 +285,7 @@ def _create_parameters(package):
         deltarho2 = 0
 
     # Compute adot from Hubble
-    adot = compute_hubble(rho, deltarho2) * a
+    adot = compute_hubble(rho, deltarho2, rhok) * a
 
     # Compute Hdot
     Hdot = compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad)
@@ -286,7 +302,7 @@ def _create_parameters(package):
     # Now compute the initial values for the psi fields
     psiA, psiB = compute_initial_psi(a, adot, phi0, phi0dot,
                                      phiA, phidotA, phiB, phidotB,
-                                     phi2pt, phi2ptdt, phi2ptgrad,
+                                     phi2pt, phi2ptdt, phi2ptgrad, rhok,
                                      parameters['eomparams'])
 
     # Pack all the initial data together

@@ -14,6 +14,7 @@ class EOMParameters(object):
     """
     def __init__(self,
                  Rmax,
+                 q,
                  kappa,
                  k_modes,
                  total_wavenumbers,
@@ -29,6 +30,7 @@ class EOMParameters(object):
                  velcoeffs):
         """Save parameters for later computations"""
         self.Rmax = Rmax
+        self.q = q
         self.kappa = kappa
         self.k_modes = k_modes
         self.total_wavenumbers = total_wavenumbers
@@ -60,15 +62,15 @@ def compute_all(unpacked_data, params):
     rho = compute_rho(phi0, phi0dot, params.model)
     phi2pt, phi2ptdt, phi2ptgrad = compute_hartree(phiA, phidotA, phiB, phidotB, params)
     deltarho2 = compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, params.model)
-    # TO-DO: Add rhoK expression (energy density in curvature)
+    rhok = compute_rhoK(a, params.q, phi0, phi0dot, params.model)
 
     # Compute quantities that depend on Hartree on or off
     if params.hartree:
-        H = compute_hubble(rho, deltarho2)
+        H = compute_hubble(rho, deltarho2, rhok)
         Hdot = compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad)
         phi0ddot = compute_phi0ddot(phi0, phi0dot, H, phi2pt, params.model)
     else:
-        H = compute_hubble(rho, 0)
+        H = compute_hubble(rho, 0, rhok)
         Hdot = compute_hubbledot(a, phi0dot, 0, 0)
         phi0ddot = compute_phi0ddot(phi0, phi0dot, H, 0, params.model)
 
@@ -78,7 +80,7 @@ def compute_all(unpacked_data, params):
     epsilon = slow_roll_epsilon(H, Hdot)
 
     # Return results
-    return rho, deltarho2, H, adot, Hdot, addot, epsilon, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad
+    return rho, deltarho2, rhok, H, adot, Hdot, addot, epsilon, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad
 
 def eoms(unpacked_data, params, time=None):
     """
@@ -97,7 +99,7 @@ def eoms(unpacked_data, params, time=None):
     a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
 
     # Compute background quantities
-    (rho, deltarho2, H, adot, Hdot, addot,
+    (rho, deltarho2, rhok, H, adot, Hdot, addot,
      epsilon, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad) = compute_all(unpacked_data, params)
 
     # Turn off phi2pt for the following if needed
@@ -124,18 +126,19 @@ def N_efolds(a):
     """Computes the number of efolds that have passed given the current scalefactor"""
     return np.log(a)
 
-def compute_hubble(rho, deltarho2):
+def compute_hubble(rho, deltarho2, rhok):
     """
     Computes the Hubble factor.
 
     Arguments:
         * rho: Background energy density
         * deltarho2: Perturbed energy density
+        * rhok: Curvature energy density
 
     Returns H == \dot{a}/a
     """
-    return sqrt((rho + deltarho2)/3)
-    # TO-DO: modify to include the curvature energy density contribution
+    return sqrt((rho + deltarho2 + rhok)/3)
+
 
 def compute_rho(phi0, phi0dot, model):
     """
@@ -162,9 +165,18 @@ def compute_deltarho2(a, phi0, phi2pt, phi2ptdt, phi2ptgrad, model):
     """
     return (phi2ptdt + phi2ptgrad/(a*a) + phi2pt*model.ddpotential(phi0) + (phi2pt*phi2pt*model.ddddpotential(phi0)/4))/2
 
-# TO-DO: write function to calculate the curvature energy density
-def compute_rhoK():
-    return 0
+def compute_rhoK(a, q, phi0, phi0dot, model):
+    """
+    Computes the energy density contribution from curvature.
+
+    Arguments:
+        * a: Background value of scale factor
+        * rho: Background energy density
+        * q: Curvature to background energy density ratio
+
+    Returns rhoK == 3 * (-K / (a*a)) == q * rho / (3 * a * a)
+    """
+    return (q * phi0dot * phi0dot / 2 + model.potential(phi0)) / (a * a)
 
 def compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad):
     """
@@ -177,7 +189,6 @@ def compute_hubbledot(a, phi0dot, phi2ptdt, phi2ptgrad):
     Returns H == -1/(2 M_{pl}^2) [\dot{\phi}_0^2 + 2-pt \dot{\phi} + 2-pt \grad(\phi)/3a^2]
     """
     return - 0.5 * (phi0dot * phi0dot + phi2ptdt + phi2ptgrad/(3*a*a))
-    # TO-DO: Confirm that this equation goes unchanged with the addition of curvature
 
 def compute_phi0ddot(phi0, phi0dot, H, phi2pt, model):
     """
@@ -224,11 +235,10 @@ def compute_perturb_phiddot(phi0, phi0dot, a, H, phi, phidot, psi, psidot, phi2p
             - (k2/(a*a) + model.ddpotential(phi0) + 0.5*model.ddddpotential(phi0)*phi2pt)*phi
             - 2 * (model.dpotential(phi0) + 0.5*model.dddpotential(phi0)*phi2pt)*psi
             + 4*phi0dot*psidot)
-    # TO-DO: Confirm that this equation goes unchanged with the addition of curvature
 
 def compute_initial_psi(a, adot, phi0, phi0dot,
                         phiA, phidotA, phiB, phidotB,
-                        phi2pt, phi2ptdt, phi2ptgrad, params):
+                        phi2pt, phi2ptdt, phi2ptgrad, rhok, params):
     r"""
     Compute initial values of psiA and psiB
 
@@ -251,7 +261,7 @@ def compute_initial_psi(a, adot, phi0, phi0dot,
 
     # Compute psi
     # TO-DO: This piece requires the addition of -3K/a^2 as seen in Eq. 60 of Dave's 'HartreeEOMsv4'
-    factor = Hdot + 2/(3*a*a) * phi2ptgrad + params.all_wavenumbers2/(a*a)
+    factor = Hdot + 2/(3*a*a) * phi2ptgrad + params.all_wavenumbers2/(a*a) + rhok/(a*a)
     psiA = 0.5*(phi0ddot*phiA - phi0dot*phidotA)/factor
     psiB = 0.5*(phi0ddot*phiB - phi0dot*phidotB)/factor
 

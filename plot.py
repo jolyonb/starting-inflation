@@ -46,7 +46,7 @@ with open(args.filename + ".dat2") as f:
     data2 = f.readlines()
 results2 = np.array([list(map(float, line.split(", "))) for line in data2]).transpose()
 (H, Hdot, addot, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad, psi2pt, rho,
-    deltarho2, epsilon, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
+    deltarho2, rhok, epsilon, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
 
 # File 3
 with open(args.filename + ".quick", 'rb') as f:
@@ -342,6 +342,16 @@ energyratio = define_fig(x_data=lna,
                          y_data=deltarho2/rho,
                          y_label=r'$\frac{\delta\rho^{(2)}}{\rho}$',
                          y_type=PlotStyle.LOG10)
+rhokplot = define_fig(x_data=lna,
+                     y_data=[rhok,rhok[0]*a**-2],
+                     y_label=r'$\rho_{k}$',
+                     y_type=PlotStyle.LOG10)
+
+lnrho = np.log(rho)
+lndeltarho2 = np.log(deltarho2)
+lnrhok = np.log(rhok)
+totalenergy = define_fig(x_data=lna, y_data=[lnrho, lndeltarho2, lnrhok], y_label='rho')
+
 deltaphidot2plot = define_fig(x_data=lna,
                               y_data=phi2ptdt/2,
                               y_label=r'$\langle \dot{\phi}^2 \rangle / 2$',
@@ -457,8 +467,9 @@ modecount = modes_in_horizon()
 # We recommend commenting out pages that you don't want, rather than deleting them
 pages = [
     [Hplot, Hdotplot, phi0plot, epsilonplot],
-    [early(rhoplot), early(deltarho2plot), early(energyratio)],
-    [rhoplot, deltarho2plot, energyratio],
+    [early(rhoplot), early(deltarho2plot), early(energyratio), early(rhokplot)],
+    [rhoplot, deltarho2plot, energyratio, rhokplot],
+    [early(totalenergy),totalenergy],
     [phidot2plot, deltaphidot2plot, kineticratio],
     [early(rmsdeltaphi), early(rmsphionphi), rmsdeltaphi, rmsphionphi],
     [early(deltaphiplots), deltaphiplots],

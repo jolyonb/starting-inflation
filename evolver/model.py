@@ -58,7 +58,7 @@ class Model(AbstractModel):
         unpacked_data = unpack(self.initial_data, self.total_wavenumbers)
         a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
 
-        (rho, deltarho2, H, adot, Hdot, addot, epsilon,
+        (rho, deltarho2, rhok, H, adot, Hdot, addot, epsilon,
          phi0ddot, phi2pt, phi2ptdt, phi2ptgrad) = compute_all(unpacked_data, params)
 
         ratio = phi2pt/(params.kappa**2/4/pi**2)
@@ -95,6 +95,7 @@ Initial Psi RMS: {sqrt(psi2pt)}
             "H": H,
             "rho": rho,
             "deltarho2": deltarho2,
+            "rhok": rhok,
             "phi2pt": phi2pt,
             "psirms": sqrt(psi2pt),
             "kappa": params.kappa,
@@ -184,7 +185,7 @@ Initial Psi RMS: {sqrt(psi2pt)}
         # Delta a = (e-1) * a / factor
         a = data[0]
         unpacked_data = unpack(data, self.total_wavenumbers)
-        _, _, H, adot, _, _, epsilon, _, _, _, _ = compute_all(unpacked_data, self.eomparams)
+        _, _, _, H, adot, _, _, epsilon, _, _, _, _ = compute_all(unpacked_data, self.eomparams)
 
         # Get the shortest wavelength
         lamda = 2 * pi / self.k_grids[0][-1]
@@ -225,7 +226,7 @@ Initial Psi RMS: {sqrt(psi2pt)}
         unpacked_data = unpack(data, self.total_wavenumbers)
         a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpacked_data
 
-        (rho, deltarho2, H, adot, Hdot, addot, epsilon, phi0ddot,
+        (rho, deltarho2, rhok, H, adot, Hdot, addot, epsilon, phi0ddot,
          phi2pt, phi2ptdt, phi2ptgrad) = compute_all(unpacked_data, self.eomparams)
 
         psi2pt = compute_2ptpsi(psiA, psiB, self.eomparams)
@@ -236,7 +237,7 @@ Initial Psi RMS: {sqrt(psi2pt)}
         Vdddd = self.infmodel.ddddpotential(phi0)
 
         extradata = [H, Hdot, addot, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad, psi2pt,
-                     rho, deltarho2, epsilon, V, Vd, Vdd, Vddd, Vdddd]
+                     rho, deltarho2, rhok, epsilon, V, Vd, Vdd, Vddd, Vdddd]
 
         # Write the derived data
         text = self.format_data(time, extradata)
