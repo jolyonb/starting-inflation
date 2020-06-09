@@ -150,12 +150,6 @@ def _create_parameters(package):
     for ell in range(2):
         k_grids[ell] /= Rmax
 
-    # Eq. 40 of 'Notes on Spatial Eigenfunctionsmfor Curved Background FLRW Spacetimes, v2'
-    # p_grids[0] =
-    # p_grids[1] =
-
-
-
     parameters['k_grids'] = k_grids
 
     # Make a tuple storing the number of wavenumbers for each ell
