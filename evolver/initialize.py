@@ -6,6 +6,7 @@ Initializes parameters for a run
 """
 import random
 import numpy as np
+from scipy.optimize import root
 from scipy.special import spherical_jn
 from evolver.besselroots import get_jn_roots
 from evolver.utilities import pack
@@ -144,11 +145,34 @@ def _create_parameters(package):
         num_k_modes = 2
     parameters['num_k_modes'] = num_k_modes
     k_grids = get_jn_roots(1, num_k_modes)
+    k_grids[0] /= Rmax
 
-    # Iterate through all wavenumbers, dividing by Rmax
-    # to turn the roots into wavenumbers
-    for ell in range(2):
-        k_grids[ell] /= Rmax
+    # Calculate z_max (Eq. 38 of "Notes on Spatial Eigenfunctions for Curved Background FLRW Spacetimes, v3")
+    # Remember: |K| = 1 / R_curv^2 and Rcurv = sqrt(3 / rhok_0)
+    zmax = np.arcsinh(Rmax * np.sqrt(rhok / 3))
+
+    def find_pn1vals(X):
+        p = X
+        f = - p * np.cos(p * zmax) + np.sin(p * zmax) / np.tanh(zmax)
+        return f
+
+    pn1_max = 500
+    sol = root(find_pn1vals, range(0, pn1_max))
+    clean = list(set(sol.x))
+    pn1vals = []
+    vals = np.array([item for item in clean if item >= 10**-7]) # Remove any negative / near zero values
+
+    for i in range(len(vals) - 1):
+        if (vals[i+1] - vals[i] > 0.001): # Toss duplicate values from root finder
+            pn1vals.append(vals[i])
+
+    # Discard extra pn1vals such that there is one fewer l = 1 mode than l = 0.
+    if len(pn1vals) != num_k_modes:
+        pn1vals = pn1vals[:num_k_modes - 1]
+
+    # Convert from pn1 to kn1 via Eq. 12 of "Notes on Spatial Eigenfunctions for Curved ... v3"
+    kn1 =np.array([rhok * (item * item + 1) / 3 for item in pn1vals])
+    k_grids[1] = kn1
 
     parameters['k_grids'] = k_grids
 

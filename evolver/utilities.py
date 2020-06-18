@@ -93,7 +93,7 @@ def load_data(filename):
     t = results[0]
     a, phi0, phi0dot, phiA, phidotA, psiA, phiB, phidotB, psiB = unpack(results[1:], nummodes)
     (H, Hdot, addot, phi0ddot, phi2pt, phi2ptdt, phi2ptgrad, psi2pt,
-     rho, deltarho2, epsilon, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
+     rho, deltarho2, rhok, epsilon, V, Vd, Vdd, Vddd, Vdddd) = results2[1:]
 
     # Put the data into a container
     fulldata = {
@@ -117,6 +117,7 @@ def load_data(filename):
         "phi2ptgrad": phi2ptgrad,
         "rho": rho,
         "deltarho2": deltarho2,
+        "rhok": rhok,
         "epsilon": epsilon,
         "V": V,
         "Vd": Vd,
